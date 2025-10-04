@@ -1549,6 +1549,29 @@ Vue.createApp({
     window.addEventListener('blur', this.handleDragEnd);
     window.addEventListener('resize', this.handleResize);
   },
+  updated() {
+    // DOM 업데이트 후 실제 렌더링된 SVG 라인 확인
+    this.$nextTick(() => {
+      const svgPaths = document.querySelectorAll('.workflow-connector-line');
+      this.logAction(`[DEBUG-DOM] 렌더링된 SVG path 요소 수: ${svgPaths.length}개`);
+      svgPaths.forEach((path, index) => {
+        const classes = Array.from(path.classList).join(' ');
+        const d = path.getAttribute('d');
+        const pathLength = path.getAttribute('pathLength');
+        const computedStyle = window.getComputedStyle(path);
+        const opacity = computedStyle.opacity;
+        const strokeDashoffset = computedStyle.strokeDashoffset;
+        const animation = computedStyle.animation;
+
+        this.logAction(`[DEBUG-DOM] path[${index}]:`);
+        this.logAction(`[DEBUG-DOM]   class="${classes}"`);
+        this.logAction(`[DEBUG-DOM]   d="${d?.substring(0, 80)}..."`);
+        this.logAction(`[DEBUG-DOM]   pathLength="${pathLength}"`);
+        this.logAction(`[DEBUG-DOM]   computed: opacity=${opacity}, strokeDashoffset=${strokeDashoffset}`);
+        this.logAction(`[DEBUG-DOM]   animation="${animation?.substring(0, 80) || 'none'}"`);
+      });
+    });
+  },
   beforeUnmount() {
     window.removeEventListener('mousemove', this.handleDragMove);
     window.removeEventListener('mouseup', this.handleDragEnd);
@@ -2019,7 +2042,7 @@ Vue.createApp({
             const shouldAnimate = !existingLine && !forceRecalculate;
 
             this.logAction(`화살선 ${existingLine ? '업데이트' : '생성'}: ${lineId} | 시작(${Math.round(startX)}, ${Math.round(startY)}) → 끝(${Math.round(endX)}, ${Math.round(endY)})`);
-            this.logAction(`[DEBUG] ${lineId} | path=${path.substring(0, 50)}...`);
+            this.logAction(`[DEBUG] ${lineId} | path 전체="${path}"`);
 
             const lineData = {
               id: lineId,
@@ -2039,6 +2062,7 @@ Vue.createApp({
             };
 
             this.logAction(`[DEBUG] ${lineId} | newLines에 추가: active=${lineData.active}, flow=${lineData.flow}, draw=${lineData.draw}`);
+            this.logAction(`[DEBUG] ${lineId} | lineData 전체=${JSON.stringify(lineData)}`);
 
             newLines.push(lineData);
           });
@@ -2082,7 +2106,10 @@ Vue.createApp({
 
         this.logAction(`[DEBUG] this.lines 최종 설정 완료: ${this.lines.length}개`);
         this.lines.forEach(line => {
-          this.logAction(`[DEBUG] - ${line.id}: active=${line.active}, cssClassFlow="${line.cssClassFlow}", cssClassDraw="${line.cssClassDraw}"`);
+          this.logAction(`[DEBUG] - ${line.id}:`);
+          this.logAction(`[DEBUG]     active=${line.active}, flow=${line.flow}, draw=${line.draw}`);
+          this.logAction(`[DEBUG]     cssClassFlow="${line.cssClassFlow}", cssClassDraw="${line.cssClassDraw}"`);
+          this.logAction(`[DEBUG]     path="${line.path}"`);
         });
 
       // 컨테이너 너비 최적화
