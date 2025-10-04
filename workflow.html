@@ -1669,12 +1669,22 @@ Vue.createApp({
           // 자동 선택 로직: 다음 단계의 항목이 1개뿐이면 자동 선택
           const lastVisibleStage = this.visibleStages[this.visibleStages.length - 1];
           if (lastVisibleStage && lastVisibleStage.visibleItems.length === 1) {
-            // 항목이 1개뿐이면 자동으로 선택
             const autoItem = lastVisibleStage.visibleItems[0];
-            // 약간의 지연을 주어 사용자가 선택 과정을 볼 수 있게 함
-            setTimeout(() => {
-              this.handleSelection(this.visibleStages.length - 1, autoItem, true);
-            }, 300);
+            const stageId = lastVisibleStage.stage.id;
+
+            // 이미 선택된 항목은 건너뜀 (무한 루프 방지)
+            const isAlreadySelected = this.selections[stageId] === autoItem.id;
+
+            // nextSteps가 없으면 자동 선택 안 함 (완료 단계 방지)
+            const hasNextSteps = autoItem.nextSteps && autoItem.nextSteps.trim() !== '';
+
+            // 조건을 만족할 때만 자동 선택
+            if (!isAlreadySelected && hasNextSteps) {
+              // 약간의 지연을 주어 사용자가 선택 과정을 볼 수 있게 함
+              setTimeout(() => {
+                this.handleSelection(this.visibleStages.length - 1, autoItem, true);
+              }, 300);
+            }
           } else if (!this.prefersReducedMotion) {
             const nextStage = this.$refs.stageCards?.[visibleStageIndex + 1];
             const nextButton = nextStage?.querySelector('.workflow-option');
