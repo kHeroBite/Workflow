@@ -1036,7 +1036,7 @@ body[data-theme="light"] .workflow-stage__step {
         </svg>
       </button>
       <div class="toolbar__zoom-slider">
-        <div class="zoom-slider-wrapper" @click="handleSliderMarkerClick">
+        <div class="zoom-slider-wrapper" @click="handleSliderMarkerClick" @wheel="handleSliderWheel">
           <div class="zoom-slider-marker"></div>
           <input type="range" class="zoom-slider" v-model.number="scale" min="0.1" max="2" step="0.1" @input="onSliderChange" aria-label="줌 슬라이더" />
         </div>
@@ -1789,6 +1789,8 @@ Vue.createApp({
         container.style.width = `${totalWidth}px`;
         container.style.minWidth = `${totalWidth}px`;
         container.style.maxWidth = `${totalWidth}px`;
+
+        this.logAction(`캔버스 크기 설정: ${totalWidth}px (단계 ${stageCount}개 × ${stageWidth}px)`);
       }
 
       const stageCards = this.$refs.stageCards || [];
@@ -1917,6 +1919,7 @@ Vue.createApp({
           width: calculatedWidth,
           height: containerHeight
         };
+        this.logAction(`SVG 크기 설정: ${calculatedWidth}px × ${containerHeight}px`);
         // 라인 상태를 반영하여 애니메이션 클래스 토글
         this.lines = allLines.map(line => ({
           ...line,
@@ -1990,6 +1993,28 @@ Vue.createApp({
         });
       }
     },
+    handleSliderWheel(event) {
+      // 슬라이더 위에서 휠로 확대/축소
+      event.preventDefault();
+
+      // deltaY가 음수면 위로 (확대), 양수면 아래로 (축소)
+      const delta = event.deltaY > 0 ? -0.1 : 0.1;
+      const newScale = Math.max(0.1, Math.min(2.0, this.scale + delta));
+
+      if (newScale !== this.scale) {
+        this.scale = newScale;
+        this.isFit = false;
+        this.linesFlowEnabled = true;
+
+        this.logAction(`슬라이더 휠 줌: ${Math.round(this.scale * 100)}%`);
+
+        this.$nextTick(() => {
+          requestAnimationFrame(() => {
+            this.updateConnections(true);
+          });
+        });
+      }
+    },
     resetZoom() {
       this.scale = 1;
       this.isFit = false;
@@ -2017,25 +2042,29 @@ Vue.createApp({
         container.style.width = '';
         container.style.minWidth = '';
         container.style.maxWidth = '';
-        
+
+        this.logAction(`전체 보기 시작: 크기 제한 제거, scale=1로 리셋`);
+
         this.$nextTick(() => {
           // 정확한 콘텐츠 크기 측정
           const contentWidth = container.scrollWidth;
           const contentHeight = container.scrollHeight;
-          
+
+          this.logAction(`전체 보기 콘텐츠 크기: ${contentWidth}px × ${contentHeight}px, 뷰포트: ${viewport.clientWidth}px × ${viewport.clientHeight}px`);
+
           if (!contentWidth || !contentHeight) {
             return;
           }
-          
+
           // 뷰포트 크기에 딱 맞는 스케일 계산 (여유를 두어 스크롤 방지)
           const widthRatio = (viewport.clientWidth / contentWidth) * 0.96; // 4% 여유
           const heightRatio = (viewport.clientHeight / contentHeight) * 0.96; // 4% 여유
           const target = Math.min(widthRatio, heightRatio);
-          
+
           this.scale = Math.min(1.5, Math.max(0.3, +target.toFixed(3)));
           this.isFit = true;
 
-          this.logAction(`전체 보기: ${Math.round(this.scale * 100)}%`);
+          this.logAction(`전체 보기: ${Math.round(this.scale * 100)}% (widthRatio=${widthRatio.toFixed(3)}, heightRatio=${heightRatio.toFixed(3)})`);
 
           viewport.scrollTo({ left: 0, top: 0, behavior: 'auto' });
           // zoom 변경 시 화살선 위치 재계산 - DOM 렌더링 완료 후 실행
@@ -2149,11 +2178,27 @@ Vue.createApp({
         return;
       }
 
-      // Ctrl 키와 함께 휠을 사용하면 빠른 좌우 스크롤
+      // Ctrl 키와 함께 휠을 사용하면 확대/축소
       if (event.ctrlKey) {
         event.preventDefault();
-        const scrollAmount = event.deltaY * 2; // Ctrl+휠은 더 빠른 스크롤
-        viewport.scrollLeft += scrollAmount;
+
+        // deltaY가 양수면 아래로 (축소), 음수면 위로 (확대)
+        const delta = event.deltaY > 0 ? -0.1 : 0.1;
+        const newScale = Math.max(0.1, Math.min(2.0, this.scale + delta));
+
+        if (newScale !== this.scale) {
+          this.scale = newScale;
+          this.isFit = false;
+          this.linesFlowEnabled = true;
+
+          this.logAction(`Ctrl+휠 줌: ${Math.round(this.scale * 100)}%`);
+
+          this.$nextTick(() => {
+            requestAnimationFrame(() => {
+              this.updateConnections(true);
+            });
+          });
+        }
       } else {
         // 일반 휠은 좌우 스크롤 (상하 휠로 좌우 스크롤)
         event.preventDefault();
