@@ -1919,14 +1919,10 @@ Vue.createApp({
         // 내부 좌표를 정확히 계산하기 위해 scale로 역보정한다
         const containerRect = container.getBoundingClientRect();
         
-        // 기존 화살선 유지 (forceRecalculate가 false인 경우)
-        let existingLines = [];
-        if (!forceRecalculate && this.lines.length > 0) {
-          existingLines = [...this.lines];
-        }
-        
-        // 새로 추가할 화살선만 생성
+        // 새로 생성할 화살선 배열
         const newLines = [];
+        // 유효한 기존 화살선 ID 추적
+        const validLineIds = new Set();
 
         // 선택된 항목의 nextSteps를 기반으로 연결선 생성
         this.visibleStages.forEach((currentStageWrapper, currentIndex) => {
@@ -1959,9 +1955,12 @@ Vue.createApp({
             const nextStageWrapper = this.visibleStages[nextStageIndex];
             const lineId = `line-${currentStageId}-to-${nextStageId}`;
 
-            // 이미 존재하는 화살선인지 확인
-            const existingLine = existingLines.find(line => line.id === lineId);
-            if (existingLine && !forceRecalculate) {
+            // 유효한 라인 ID 기록
+            validLineIds.add(lineId);
+
+            // 이미 존재하고 forceRecalculate가 아니면 기존 라인 재사용
+            const existingLine = !forceRecalculate && this.lines.find(line => line.id === lineId);
+            if (existingLine) {
               // 기존 화살선 유지하되, 애니메이션 상태 업데이트
               newLines.push({
                 ...existingLine,
@@ -2035,8 +2034,8 @@ Vue.createApp({
           });
         });
 
-        // 기존 화살선과 새 화살선 병합
-        const allLines = [...existingLines, ...newLines];
+        // 최종 라인 배열 = newLines (중복 없음)
+        const allLines = newLines;
         
         // SVG 크기 계산 - 모든 좌표(시작점, 끝점, 제어점)를 고려 (scale 역보정된 값 기준)
         let maxX = 0;
