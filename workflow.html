@@ -1799,7 +1799,8 @@ Vue.createApp({
       const stageCards = this.$refs.stageCards || [];
       if (!stageCards.length) {
         // 카드 DOM이 아직 준비되지 않은 경우에도 계산크기 기준으로 SVG 사이즈 설정
-        const calculatedWidth = stageCount * 346;
+        // 단, 전체보기 모드일 때는 실제 콘텐츠 크기 사용
+        const calculatedWidth = this.isFit ? container.scrollWidth : stageCount * 346;
         this.connectorSize = {
           width: calculatedWidth,
           height: container.scrollHeight
@@ -1914,7 +1915,8 @@ Vue.createApp({
         });
         
         // 계산크기 기준으로 SVG 크기 설정 (항상 계산크기와 동일하게)
-        const calculatedWidth = stageCount * 346; // 단계당 고정 너비
+        // 단, 전체보기 모드일 때는 실제 콘텐츠 크기 사용 (스크롤바 방지)
+        const calculatedWidth = this.isFit ? container.scrollWidth : stageCount * 346;
         const containerHeight = container.scrollHeight;
 
         // 캔버스는 계산크기와 정확히 일치하도록 SVG 크기 설정
@@ -1922,7 +1924,7 @@ Vue.createApp({
           width: calculatedWidth,
           height: containerHeight
         };
-        this.logAction(`SVG 크기 설정: ${calculatedWidth}px × ${containerHeight}px`);
+        this.logAction(`SVG 크기 설정: ${calculatedWidth}px × ${containerHeight}px ${this.isFit ? '(전체보기 모드: 실제 콘텐츠 크기)' : ''}`);
         // 라인 상태를 반영하여 애니메이션 클래스 토글
         this.lines = allLines.map(line => ({
           ...line,
