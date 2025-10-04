@@ -1580,7 +1580,7 @@ Vue.createApp({
      * @param {number} visibleStageIndex - visibleStages 배열에서의 인덱스
      * @param {object} item - 선택된 항목 객체
      */
-    handleSelection(visibleStageIndex, item) {
+    handleSelection(visibleStageIndex, item, autoSelect = false) {
       const currentVisibleStage = this.visibleStages[visibleStageIndex];
       if (!currentVisibleStage) return;
       // 이전 단계로 돌아가 재선택하는지 여부 판단 (현재 보이는 마지막 단계보다 앞이면 뒤로 가는 동작)
@@ -1589,7 +1589,7 @@ Vue.createApp({
       const stageId = currentVisibleStage.stage.id;
       const itemId = item.id;
 
-      this.logAction(`단계 ${stageId} 선택: ${item.label} (${itemId})${isBackNavigation ? ' [뒤로 가기]' : ''}`);
+      this.logAction(`단계 ${stageId} 선택: ${item.label} (${itemId})${isBackNavigation ? ' [뒤로 가기]' : ''}${autoSelect ? ' [자동]' : ''}`);
 
       // 현재 단계의 선택 저장
       this.selections[stageId] = itemId;
@@ -1662,11 +1662,20 @@ Vue.createApp({
         this.$nextTick(() => {
           // 항목 선택 시 항상 기본 크기로 리셋 (이전 단계든 다음 단계든 상관없이)
           this.resetZoom();
-          
+
           // 항목 선택 시 항상 우측 끝으로 스크롤
           this.scrollToRight();
-          
-          if (!this.prefersReducedMotion) {
+
+          // 자동 선택 로직: 다음 단계의 항목이 1개뿐이면 자동 선택
+          const lastVisibleStage = this.visibleStages[this.visibleStages.length - 1];
+          if (lastVisibleStage && lastVisibleStage.visibleItems.length === 1) {
+            // 항목이 1개뿐이면 자동으로 선택
+            const autoItem = lastVisibleStage.visibleItems[0];
+            // 약간의 지연을 주어 사용자가 선택 과정을 볼 수 있게 함
+            setTimeout(() => {
+              this.handleSelection(this.visibleStages.length - 1, autoItem, true);
+            }, 300);
+          } else if (!this.prefersReducedMotion) {
             const nextStage = this.$refs.stageCards?.[visibleStageIndex + 1];
             const nextButton = nextStage?.querySelector('.workflow-option');
             if (nextButton) {
