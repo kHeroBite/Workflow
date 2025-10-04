@@ -1,0 +1,1846 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>유지보수 워크플로우</title>
+<style>
+:root {
+  --radius-lg: 24px;
+  --radius-md: 18px;
+  --radius-sm: 12px;
+  --shadow-soft: 0 30px 68px rgba(8, 12, 24, 0.46);
+  --stage-width-base: clamp(312px, 28.6vw, 390px);
+  --summary-height-base: clamp(96px, 13vw, 132px);
+  --choice-height-base: clamp(42px, 5vw, 56px);
+  --board-gap-base: clamp(0.6rem, 2vw, 1rem);
+  --workflow-scale: 1;
+  --stage-width: var(--stage-width-base);
+  --summary-height: var(--summary-height-base);
+  --choice-height: var(--choice-height-base);
+  --board-gap: var(--board-gap-base);
+}
+
+[v-cloak] {
+  display: none !important;
+}
+
+body[data-theme="dark"] {
+  color-scheme: dark;
+  --body-background: radial-gradient(circle at 5% 15%, rgba(64, 64, 64, 0.15), transparent 55%), radial-gradient(circle at 80% 8%, rgba(96, 96, 96, 0.12), transparent 45%), linear-gradient(130deg, #0a0a0a, #1a1a1a 58%, #000000);
+  --body-overlay: radial-gradient(circle at 25% 25%, rgba(80, 80, 80, 0.08), transparent 60%), radial-gradient(circle at 70% 20%, rgba(64, 64, 64, 0.08), transparent 55%), linear-gradient(140deg, rgba(26, 26, 26, 0.82), rgba(26, 26, 26, 0.4));
+  --bg: #0a0a0a;
+  --bg-panel: rgba(26, 26, 26, 0.85);
+  --bg-card: linear-gradient(150deg, rgba(48, 48, 48, 0.8), rgba(32, 32, 32, 0.72));
+  --bg-panel-strong: rgba(20, 20, 20, 0.85);
+  --surface: rgba(24, 24, 24, 0.8);
+  --card-border: rgba(80, 80, 80, 0.35);
+  --card-border-active: rgba(250, 204, 21, 0.9);
+  --text-primary: #f5f5f5;
+  --text-secondary: #d4d4d4;
+  --text-faded: rgba(212, 212, 212, 0.6);
+  --accent: #808080;
+  --accent-strong: #fcd34d;
+  --toolbar-bg: rgba(18, 18, 18, 0.85);
+  --toolbar-border: rgba(80, 80, 80, 0.35);
+  --toolbar-title-color: rgba(229, 229, 229, 0.9);
+  --toolbar-scale-color: rgba(212, 212, 212, 0.85);
+  --toolbar-button-bg: rgba(32, 32, 32, 0.7);
+  --toolbar-button-border: rgba(96, 96, 96, 0.5);
+  --toolbar-button-hover-border: rgba(128, 128, 128, 0.8);
+  --toolbar-button-hover-bg: rgba(64, 64, 64, 0.5);
+  --toolbar-select-bg: rgba(32, 32, 32, 0.7);
+  --toolbar-select-border: rgba(96, 96, 96, 0.5);
+  --toolbar-select-color: #f5f5f5;
+  --toolbar-select-focus: rgba(128, 128, 128, 0.5);
+  --viewport-bg: rgba(16, 16, 16, 0.8);
+  --viewport-border: rgba(64, 64, 64, 0.3);
+  --start-bg: rgba(24, 24, 24, 0.8);
+  --start-border: rgba(80, 80, 80, 0.5);
+  --progress-track-bg: rgba(96, 96, 96, 0.25);
+  --reset-button-bg: rgba(32, 32, 32, 0.7);
+  --reset-button-border: rgba(96, 96, 96, 0.5);
+  --reset-button-hover-border: rgba(128, 128, 128, 0.8);
+  --reset-button-hover-bg: rgba(64, 64, 64, 0.5);
+  --info-bg: rgba(20, 20, 20, 0.7);
+  --info-border: rgba(80, 80, 80, 0.35);
+  --choice-bg: rgba(48, 48, 48, 0.3);
+  --choice-border: rgba(96, 96, 96, 0.4);
+  --choice-text: rgba(229, 229, 229, 0.9);
+  --options-bg: rgba(18, 18, 18, 0.7);
+  --options-border: rgba(80, 80, 80, 0.3);
+  --options-title-color: rgba(212, 212, 212, 0.75);
+  --option-bg: rgba(28, 28, 28, 0.7);
+  --option-border: rgba(96, 96, 96, 0.45);
+  --option-hover-bg: rgba(64, 64, 64, 0.5);
+  --option-hover-border: rgba(128, 128, 128, 0.8);
+  --option-hover-shadow: rgba(64, 64, 64, 0.4);
+  --option-selected-border: rgba(250, 204, 21, 0.85);
+  --option-selected-shadow: rgba(96, 96, 96, 0.4);
+  --step-text-color: rgba(229, 229, 229, 0.95);
+}
+
+body[data-theme="light"] {
+  color-scheme: light;
+  --body-background: radial-gradient(circle at 12% 18%, rgba(148, 197, 255, 0.25), transparent 55%), radial-gradient(circle at 78% 12%, rgba(251, 216, 127, 0.22), transparent 45%), linear-gradient(135deg, #f8fafc, #e2e8f0 58%, #f1f5f9);
+  --body-overlay: radial-gradient(circle at 25% 25%, rgba(148, 197, 255, 0.18), transparent 60%), radial-gradient(circle at 70% 20%, rgba(244, 172, 183, 0.18), transparent 55%), linear-gradient(140deg, rgba(241, 245, 249, 0.82), rgba(241, 245, 249, 0.5));
+  --bg: #f8fafc;
+  --bg-panel: rgba(241, 245, 249, 0.92);
+  --bg-card: linear-gradient(150deg, rgba(191, 219, 254, 0.9), rgba(165, 243, 252, 0.8));
+  --bg-panel-strong: rgba(226, 232, 240, 0.82);
+  --surface: rgba(255, 255, 255, 0.94);
+  --card-border: rgba(148, 163, 184, 0.32);
+  --card-border-active: rgba(234, 179, 8, 0.85);
+  --text-primary: #1f2937;
+  --text-secondary: #334155;
+  --text-faded: rgba(51, 65, 85, 0.6);
+  --accent: #2563eb;
+  --accent-strong: #c2410c;
+  --toolbar-bg: rgba(248, 250, 252, 0.92);
+  --toolbar-border: rgba(148, 163, 184, 0.35);
+  --toolbar-title-color: #1d4ed8;
+  --toolbar-scale-color: #475569;
+  --toolbar-button-bg: rgba(226, 232, 240, 0.85);
+  --toolbar-button-border: rgba(148, 163, 184, 0.5);
+  --toolbar-button-hover-border: rgba(59, 130, 246, 0.68);
+  --toolbar-button-hover-bg: rgba(59, 130, 246, 0.2);
+  --toolbar-select-bg: rgba(255, 255, 255, 0.92);
+  --toolbar-select-border: rgba(148, 163, 184, 0.5);
+  --toolbar-select-color: #1f2937;
+  --toolbar-select-focus: rgba(59, 130, 246, 0.42);
+  --viewport-bg: rgba(248, 250, 252, 0.92);
+  --viewport-border: rgba(148, 163, 184, 0.32);
+  --start-bg: rgba(255, 255, 255, 0.94);
+  --start-border: rgba(191, 219, 254, 0.6);
+  --progress-track-bg: rgba(59, 130, 246, 0.18);
+  --reset-button-bg: rgba(226, 232, 240, 0.9);
+  --reset-button-border: rgba(148, 163, 184, 0.55);
+  --reset-button-hover-border: rgba(59, 130, 246, 0.68);
+  --reset-button-hover-bg: rgba(59, 130, 246, 0.24);
+  --info-bg: rgba(255, 255, 255, 0.95);
+  --info-border: rgba(148, 163, 184, 0.45);
+  --choice-bg: rgba(59, 130, 246, 0.12);
+  --choice-border: rgba(59, 130, 246, 0.28);
+  --choice-text: #1f2937;
+  --options-bg: rgba(255, 255, 255, 0.95);
+  --options-border: rgba(148, 163, 184, 0.45);
+  --options-title-color: #475569;
+  --option-bg: rgba(248, 250, 252, 0.95);
+  --option-border: rgba(148, 163, 184, 0.45);
+  --option-hover-bg: rgba(59, 130, 246, 0.18);
+  --option-hover-border: rgba(59, 130, 246, 0.68);
+  --option-hover-shadow: rgba(59, 130, 246, 0.22);
+  --option-selected-border: rgba(234, 179, 8, 0.9);
+  --option-selected-shadow: rgba(59, 130, 246, 0.28);
+  --step-text-color: #1d4ed8;
+}
+* {
+  box-sizing: border-box;
+  font-family: 'Pretendard', 'Noto Sans KR', 'Segoe UI', sans-serif;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--body-background);
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+  transition: background 0.4s ease, color 0.4s ease;
+}
+body.is-dragging {
+  user-select: none;
+  cursor: grabbing;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: var(--body-overlay);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation: nebula 18s ease-in-out infinite alternate;
+}
+[hidden] {
+  display: none !important;
+}
+.page {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: clamp(1.4rem, 4vw, 3rem) clamp(1.2rem, 5vw, 3.6rem) clamp(2rem, 6vw, 4.2rem);
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.4rem, 3vw, 2.4rem);
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem clamp(1rem, 3vw, 1.4rem);
+  border-radius: var(--radius-lg);
+  background: var(--toolbar-bg);
+  border: 1px solid var(--toolbar-border);
+  box-shadow: 0 26px 48px rgba(6, 10, 22, 0.55);
+  gap: clamp(0.8rem, 2vw, 1.4rem);
+}
+.toolbar__left {
+  display: flex;
+  align-items: center;
+  gap: clamp(1.2rem, 3vw, 2rem);
+}
+.toolbar__title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--toolbar-title-color);
+}
+.toolbar__theme {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+.toolbar__theme-label {
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faded);
+}
+.toolbar__theme-buttons {
+  display: flex;
+  gap: 0.4rem;
+}
+.toolbar__theme-button {
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+.toolbar__theme-button--light {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #92400e;
+  border-color: #fbbf24;
+}
+.toolbar__theme-button--light:hover {
+  background: linear-gradient(135deg, #fde68a, #fcd34d);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+}
+.toolbar__theme-button--light.is-active {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #451a03;
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.5), 0 6px 16px rgba(251, 191, 36, 0.6);
+  transform: translateY(-2px);
+  font-weight: 700;
+}
+.toolbar__theme-button--dark {
+  background: linear-gradient(135deg, #374151, #1f2937);
+  color: #f3f4f6;
+  border-color: #4b5563;
+}
+.toolbar__theme-button--dark:hover {
+  background: linear-gradient(135deg, #1f2937, #111827);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(31, 41, 55, 0.6);
+}
+.toolbar__theme-button--dark.is-active {
+  background: linear-gradient(135deg, #1f2937, #111827);
+  color: #f9fafb;
+  border-color: #9ca3af;
+  box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.5), 0 6px 16px rgba(31, 41, 55, 0.8);
+  transform: translateY(-2px);
+  font-weight: 700;
+}
+
+/* 활성 테마 버튼 펄스 애니메이션 */
+.toolbar__theme-button.is-active::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 999px;
+  border: 2px solid currentColor;
+  opacity: 0.0;
+  animation: themePulse 1.8s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes themePulse {
+  0% { transform: scale(0.95); opacity: 0.0; }
+  40% { transform: scale(1.05); opacity: 0.35; }
+  100% { transform: scale(1.18); opacity: 0; }
+}
+.toolbar__actions {
+  display: flex;
+  gap: 0.45rem;
+}
+.toolbar__scale {
+  min-width: 72px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--toolbar-scale-color);
+  padding: 0.45rem 1.1rem;
+  border-radius: 999px;
+  background: var(--toolbar-button-bg);
+  border: 1px solid var(--toolbar-button-border);
+}
+.toolbar__button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--toolbar-button-border);
+  background: var(--toolbar-button-bg);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+.toolbar__button svg {
+  width: 1em;
+  height: 1em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+}
+.toolbar__button:hover,
+.toolbar__button:focus-visible {
+  border-color: var(--toolbar-button-hover-border);
+  background: var(--toolbar-button-hover-bg);
+}
+.workflow-main {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.2rem, 3vw, 1.8rem);
+  flex: 1;
+  min-height: 0;
+}
+.workflow-viewport {
+  flex: 1;
+  min-height: 0;
+  border-radius: var(--radius-lg);
+  background: var(--viewport-bg);
+  border: 1px solid var(--viewport-border);
+  box-shadow: 0 28px 56px rgba(4, 8, 20, 0.45);
+  overflow: auto;
+  display: flex;
+  cursor: grab;
+  user-select: none;
+}
+.workflow-viewport.is-dragging {
+  cursor: grabbing;
+}
+.workflow-canvas {
+  flex: 1;
+  transform: scale(var(--workflow-scale));
+  transform-origin: top left;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 2vw, 1.4rem);
+  padding: clamp(1.2rem, 3vw, 1.8rem);
+}
+.workflow-start {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  padding: clamp(2rem, 6vw, 3rem);
+  border-radius: var(--radius-lg);
+  background: var(--start-bg);
+  border: 1px dashed var(--start-border);
+  text-align: center;
+  box-shadow: 0 26px 48px rgba(6, 10, 22, 0.55);
+}
+.workflow-start__title {
+  margin: 0;
+  font-size: clamp(1.38rem, 3.5vw, 1.8rem);
+}
+.workflow-start__hint {
+  margin: 0;
+  color: var(--text-faded);
+  font-size: 0.78rem;
+  max-width: 540px;
+}
+.workflow-start__button {
+  padding: 0.9rem 2.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(128, 128, 128, 0.65);
+  background: linear-gradient(135deg, rgba(80, 80, 80, 0.9), rgba(64, 64, 64, 0.82));
+  color: var(--text-primary);
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 18px 34px rgba(48, 48, 48, 0.5);
+}
+.workflow-start__button:hover,
+.workflow-start__button:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 22px 44px rgba(64, 64, 64, 0.6);
+}
+body[data-theme="light"] .workflow-start__button {
+  border: 1px solid rgba(96, 165, 250, 0.65);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(59, 130, 246, 0.62));
+  box-shadow: 0 18px 34px rgba(37, 99, 235, 0.45);
+}
+body[data-theme="light"] .workflow-start__button:hover,
+body[data-theme="light"] .workflow-start__button:focus-visible {
+  box-shadow: 0 22px 44px rgba(59, 130, 246, 0.55);
+}
+.workflow-progress {
+  display: grid;
+  gap: 0.7rem;
+  width: 100%;
+  max-width: 100%;
+  position: relative;
+  flex-shrink: 0;
+  z-index: 10;
+}
+.workflow-progress__track {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--progress-track-bg);
+  overflow: hidden;
+}
+.workflow-progress__bar {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: linear-gradient(90deg, rgba(56, 189, 248, 0.95), rgba(244, 114, 182, 0.92), rgba(250, 204, 21, 0.85));
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.workflow-progress__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  flex-shrink: 0;
+}
+.workflow-debug {
+  font-size: 0.78rem;
+  color: var(--text-faded);
+  margin-left: 0.6rem;
+  white-space: nowrap;
+}
+.workflow-progress__label {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+.workflow-reset {
+  padding: 0.55rem 1.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--reset-button-border);
+  background: var(--reset-button-bg);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border 0.2s ease, color 0.2s ease, background 0.2s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.workflow-reset:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.workflow-reset:not(:disabled):hover,
+.workflow-reset:not(:disabled):focus-visible {
+  border-color: var(--reset-button-hover-border);
+  background: var(--reset-button-hover-bg);
+}
+.workflow-board {
+  display: flex;
+  align-items: stretch;
+  gap: var(--board-gap);
+  flex: 1;
+  min-height: 0;
+}
+.workflow-stage {
+  flex: 0 0 var(--stage-width);
+  width: var(--stage-width);
+  padding: clamp(0.75rem, 1.6vw, 1.05rem);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.55rem, 1.6vw, 0.85rem);
+  opacity: 0;
+  transform: translateY(24px) scale(0.97);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease, border 0.3s ease, box-shadow 0.35s ease;
+  scroll-snap-align: start;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+.workflow-stage.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.workflow-stage.is-complete {
+  border-color: var(--card-border-active);
+  box-shadow: 0 36px 68px rgba(250, 204, 21, 0.28);
+}
+.workflow-stage:last-child {
+  margin-right: 0;
+}
+.workflow-stage__summary-row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: clamp(0.45rem, 1.2vw, 0.7rem);
+}
+.workflow-stage__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.45rem, 1.2vw, 0.7rem);
+  padding: clamp(0.9rem, 2.4vw, 1.2rem);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--info-border);
+  background: var(--info-bg);
+  min-height: var(--summary-height);
+}
+.workflow-stage__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.workflow-stage__step {
+  margin: 0;
+  padding: 0.32rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(64, 64, 64, 0.3);
+  border: 1px solid rgba(96, 96, 96, 0.5);
+  font-size: 0.8rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--step-text-color, rgba(229, 229, 229, 0.9));
+}
+body[data-theme="light"] .workflow-stage__step {
+  background: rgba(96, 165, 250, 0.2);
+  border: 1px solid rgba(96, 165, 250, 0.4);
+  color: #1d4ed8;
+}
+.workflow-stage__title {
+  margin: 0;
+  font-size: clamp(1rem, 2.4vw, 1.26rem);
+}
+.workflow-stage__choice {
+  border-radius: var(--radius-md);
+  background: var(--choice-bg);
+  border: 1px solid var(--choice-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.8rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--choice-text);
+  text-align: center;
+  transition: border 0.2s ease, background 0.2s ease, color 0.2s ease;
+  min-height: var(--choice-height);
+}
+.workflow-stage__choice.is-active {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.28), rgba(250, 204, 21, 0.24));
+  border-color: rgba(250, 204, 21, 0.78);
+  color: #0f172a;
+}
+.workflow-stage__choice[aria-live="polite"] {
+  font-size: 0.85rem;
+}
+.workflow-stage__options-box {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--options-border);
+  background: var(--options-bg);
+  padding: clamp(0.9rem, 2.4vw, 1.2rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.workflow-stage__options-title {
+  margin: 0;
+  font-size: 0.82rem;
+  letter-spacing: 0.18em;
+  color: var(--options-title-color);
+  text-transform: uppercase;
+}
+.workflow-options {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.25rem, 1.2vw, 0.4rem);
+}
+.workflow-option {
+  width: 100%;
+  padding: 0 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--option-border);
+  background: var(--option-bg);
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: border 0.25s ease, background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  display: flex;
+  align-items: center;
+  min-height: calc(var(--choice-height) * 0.5);
+}
+.workflow-option:hover,
+.workflow-option:focus-visible {
+  border-color: var(--option-hover-border);
+  background: var(--option-hover-bg);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px var(--option-hover-shadow);
+}
+.workflow-option.is-selected {
+  border-color: var(--option-selected-border);
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.32), rgba(250, 204, 21, 0.25));
+  box-shadow: 0 24px 52px var(--option-selected-shadow);
+}
+
+.workflow-stage-list {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--board-gap);
+  min-width: 100%;
+  width: fit-content;
+  padding: 0 clamp(0.4rem, 1vw, 0.6rem);
+  overscroll-behavior-x: contain;
+  overflow: visible;
+  scroll-snap-type: x proximity;
+  transition: width 0.3s ease;
+  z-index: 0;
+}
+.workflow-connector-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 99999;
+}
+.workflow-connector-line {
+  stroke: url(#connectorGradient);
+  stroke-width: 4;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* pathLength 기반 점선 패턴 - 모든 선에서 일관된 간격 */
+  stroke-dasharray: 6 4;
+  stroke-dashoffset: 100;
+  opacity: 0;
+  vector-effect: non-scaling-stroke;
+  shape-rendering: geometricPrecision;
+  filter: drop-shadow(0 2px 6px rgba(59, 130, 246, 0.4));
+  transition: opacity 0.3s ease;
+}
+.workflow-connector-line.is-active {
+  opacity: 1;
+}
+/* 그리기 + 흐름 동시 적용 (선택/생성 시) */
+.workflow-connector-line.is-active.has-flow.animate-draw {
+  animation: connectorDraw 1.2s linear forwards,
+             connectorFlow 2s linear 1.2s infinite;
+}
+/* 흐름만 적용 (줌/리레이아웃 시 재계산할 때 사라짐 방지) */
+.workflow-connector-line.is-active.has-flow:not(.animate-draw) {
+  stroke-dashoffset: 0; /* 즉시 보이도록 기본 오프셋 0 보정 */
+  animation: connectorFlow 2s linear infinite;
+}
+.workflow-connector-dot {
+  fill: var(--accent-strong);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: transform 0.35s ease, opacity 0.35s ease;
+}
+.workflow-connector-dot.is-active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* 연결선 그리기 애니메이션 - pathLength 100 기준으로 앞에서부터 순차적으로 그려짐 */
+@keyframes connectorDraw {
+  0% {
+    stroke-dashoffset: 100;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+/* 점선이 흐르는 애니메이션 */
+@keyframes connectorFlow {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -10;
+  }
+}
+@keyframes nebula {
+  0% { transform: scale(1) translateX(0); opacity: 0.85; }
+  100% { transform: scale(1.08) translateX(2%); opacity: 0.95; }
+}
+@media (max-width: 1080px) {
+  .workflow-viewport {
+    padding: 0.8rem;
+  }
+  .workflow-stage-list {
+    gap: var(--board-gap);
+  }
+}
+@media (max-width: 720px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.8rem;
+  }
+  .toolbar__theme {
+    justify-content: space-between;
+  }
+  .toolbar__theme-buttons {
+    flex: 1;
+    justify-content: flex-end;
+  }
+  .toolbar__actions {
+    justify-content: flex-end;
+  }
+  .workflow-progress__meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.45rem;
+  }
+  .workflow-reset {
+    width: 100%;
+    text-align: center;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body data-theme="dark">
+<div class="page">
+  <section class="toolbar" aria-label="워크플로우 도구">
+    <div class="toolbar__left">
+      <span class="toolbar__title">MAINTENANCE WORKFLOW</span>
+      <div class="toolbar__theme">
+        <span class="toolbar__theme-label">테마</span>
+        <div class="toolbar__theme-buttons">
+          <button type="button" class="toolbar__theme-button toolbar__theme-button--light" :class="{ 'is-active': theme === 'light' }" @click="theme = 'light'" aria-label="라이트 테마">
+            라이트
+          </button>
+          <button type="button" class="toolbar__theme-button toolbar__theme-button--dark" :class="{ 'is-active': theme === 'dark' }" @click="theme = 'dark'" aria-label="다크 테마">
+            다크
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="toolbar__actions">
+      <button type="button" class="toolbar__button" id="saveImage" aria-label="이미지로 저장" @click="saveAsImage" :disabled="!started">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="1.6" />
+          <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
+          <path d="M21 15l-5-5L5 21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        이미지 저장
+      </button>
+      <span class="toolbar__scale">{{ zoomPercent }}%</span>
+      <button type="button" class="toolbar__button" id="zoomFit" :aria-pressed="isFit ? 'true' : 'false'" aria-label="전체 보기" @click="fitToView">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 9V4h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+          <rect x="7" y="7" width="10" height="10" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="1.6" />
+        </svg>
+        전체보기
+      </button>
+      <button type="button" class="toolbar__button" id="zoomOut" aria-label="축소" :disabled="isFit" @click="changeZoom(-0.1)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" /></svg>
+        축소
+      </button>
+      <button type="button" class="toolbar__button" id="zoomReset" aria-label="원래 크기" @click="resetZoom">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+        기본
+      </button>
+      <button type="button" class="toolbar__button" id="zoomIn" aria-label="확대" @click="changeZoom(0.1)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+        확대
+      </button>
+    </div>
+  </section>
+  <main class="workflow-main" v-cloak>
+    <section class="workflow-progress" v-if="started">
+      <div class="workflow-progress__track" role="progressbar" aria-label="워크플로우 단계 진행도" aria-valuemin="0" :aria-valuemax="workflowSteps.length" :aria-valuenow="selectedCount">
+        <span class="workflow-progress__bar" :style="{ transform: `scaleX(${progressRatio})` }"></span>
+      </div>
+      <div class="workflow-progress__meta">
+        <p class="workflow-progress__label">{{ selectedCount }} 단계 선택 ({{ visibleStages.length }} 단계 표시 중)</p>
+           <span class="workflow-debug" v-if="debugEnabled">단계박스 {{ visibleStages.length }}개 · 계산크기 {{ visibleStages.length * 346 }}px · 뷰포트 {{ canvasWidthPx }}px · 캔버스 {{ canvasSizePx }}px · 보드 {{ boardWidthPx }}px · 스테이지리스트 width={{ stageListWidthPx }}</span>
+        <button type="button" class="workflow-reset" @click="resetFlow" :disabled="!started">처음으로</button>
+      </div>
+    </section>
+    <div class="workflow-viewport" ref="workflowViewport" :class="{ 'is-dragging': dragState.active }" @mousedown="handleDragStart" @wheel="handleWheel">
+      <div class="workflow-canvas" ref="workflowCanvas" :style="canvasStyle">
+        <section class="workflow-start" v-if="!started" aria-live="polite">
+          <h2 class="workflow-start__title">유지보수 워크플로우 시뮬레이션</h2>
+          <p class="workflow-start__hint">버튼을 누르면 유입경로부터 시작하여 선택에 따라 동적으로 다음 단계가 표시됩니다. 선택 항목은 화살표로 연결됩니다.</p>
+          <button type="button" class="workflow-start__button" @click="startFlow">시작</button>
+        </section>
+        <div class="workflow-board" v-if="started" ref="workflowBoard">
+          <section class="workflow-stage-list" ref="stageListWrapper" aria-live="polite" role="list">
+            <svg v-if="lines.length" class="workflow-connector-layer" :width="connectorSize.width" :height="connectorSize.height" :viewBox="`0 0 ${connectorSize.width} ${connectorSize.height}`">
+              <defs>
+                <linearGradient id="connectorGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.95" />
+                  <stop offset="25%" stop-color="#8b5cf6" stop-opacity="0.9" />
+                  <stop offset="50%" stop-color="#ec4899" stop-opacity="0.9" />
+                  <stop offset="75%" stop-color="#f59e0b" stop-opacity="0.9" />
+                  <stop offset="100%" stop-color="#10b981" stop-opacity="0.95" />
+                </linearGradient>
+              </defs>
+              <g v-for="line in lines" :key="line.id">
+                <path class="workflow-connector-line" :class="{ 'is-active': line.active, [line.cssClassFlow]: true, [line.cssClassDraw]: true }" :d="line.path" pathLength="100" />
+                <circle class="workflow-connector-dot" :class="{ 'is-active': line.active }" :cx="line.startX" :cy="line.startY" r="6" />
+                <circle class="workflow-connector-dot" :class="{ 'is-active': line.active }" :cx="line.endX" :cy="line.endY" r="6" />
+              </g>
+            </svg>
+            <article v-for="(visibleStage, index) in visibleStages" :key="visibleStage.stage.id" class="workflow-stage" :class="{ 'is-visible': true, 'is-complete': selections[visibleStage.stage.id] }" ref="stageCards" role="listitem" :aria-label="visibleStage.stage.title">
+              <header class="workflow-stage__header">
+                <p class="workflow-stage__step">{{ padStep(visibleStage.stage.id) }}</p>
+                <h3 class="workflow-stage__title">{{ visibleStage.stage.title }}</h3>
+              </header>
+              <div class="workflow-stage__choice" ref="choiceBlocks" :class="{ 'is-active': selections[visibleStage.stage.id] }" aria-live="polite">
+                {{ getSelectedLabel(visibleStage) || '선택을 진행하세요' }}
+              </div>
+              <div class="workflow-stage__options-box">
+                <p class="workflow-stage__options-title">선택 대상</p>
+                <ul class="workflow-options" role="list">
+                  <li v-for="item in visibleStage.visibleItems" :key="item.id">
+                    <button type="button" class="workflow-option" :class="{ 'is-selected': selections[visibleStage.stage.id] === item.id }" @click="handleSelection(index, item)" :aria-pressed="selections[visibleStage.stage.id] === item.id">
+                      {{ item.label }}
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </article>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script>
+const THEME_STORAGE_KEY = 'maintenanceWorkflowTheme';
+
+/**
+ * CSV 데이터를 기반으로 한 워크플로우 단계 정의
+ * 각 항목은 id, label, nextSteps를 포함
+ */
+const workflowSteps = [
+  {
+    id: 1,
+    title: '유입경로',
+    items: [
+      { id: '1.1', label: '전화', nextSteps: '2' },
+      { id: '1.2', label: '문자/SNS', nextSteps: '2' },
+      { id: '1.3', label: '대면/회의', nextSteps: '2' },
+      { id: '1.4', label: '메일', nextSteps: '2' },
+      { id: '1.5', label: '헬프데스크(고객등록)', nextSteps: '2' },
+      { id: '1.6', label: '모니터링 알람(SMS/e-mail)', nextSteps: '2' },
+      { id: '1.7', label: '내부전달(영업/엔지니어)', nextSteps: '2' },
+      { id: '1.8', label: '지원요청', nextSteps: '2' },
+      { id: '1.9', label: '정기작업(점검 등)', nextSteps: '2' }
+    ]
+  },
+  {
+    id: 2,
+    title: '요구사항분석(유형 분류)',
+    items: [
+      { id: '2.1', label: '장애처리(Incident)', nextSteps: '4.1' },
+      { id: '2.2', label: '정기점검(PM)', nextSteps: '3.1, 3.2, 3.3' },
+      { id: '2.3', label: '질의응답(Q&A)', nextSteps: '4.1' },
+      { id: '2.4', label: '인증서 교체', nextSteps: '3.4, 3.5' },
+      { id: '2.5', label: '업그레이드/패치(애플리케이션)', nextSteps: '3.6, 3.7' },
+      { id: '2.6', label: '메이저 업그레이드(버전 상향)', nextSteps: '4.2' },
+      { id: '2.7', label: '플랫폼 변경/이전', nextSteps: '3.8, 3.9, 3.10' },
+      { id: '2.8', label: 'TSS(기술지원) 요청', nextSteps: '3.11, 3.12' },
+      { id: '2.9', label: 'SR(차감형) 요청', nextSteps: '4.2' },
+      { id: '2.10', label: 'SM(운영) 요청', nextSteps: '4.2' },
+      { id: '2.11', label: 'CR/ADC(추가/변경개발)', nextSteps: '4.2' },
+      { id: '2.12', label: 'KMA 지식작업', nextSteps: '4.2' },
+      { id: '2.13', label: '교육 지원', nextSteps: '4.2' },
+      { id: '2.14', label: '색인/학습 작업', nextSteps: '4.2' },
+      { id: '2.15', label: '모니터링/헬프데스크 등록·정리', nextSteps: '4.1' },
+      { id: '2.99', label: '기타(판정 필요)', nextSteps: '4.1' }
+    ]
+  },
+  {
+    id: 3,
+    title: '세부유형(소분류)',
+    items: [
+      { id: '3.1', label: 'PM-원격', nextSteps: '4.1' },
+      { id: '3.2', label: 'PM-방문(수도권)', nextSteps: '4.1' },
+      { id: '3.3', label: 'PM-방문(비수도권)', nextSteps: '4.1' },
+      { id: '3.4', label: '인증서 교체-일반시간', nextSteps: '4.1' },
+      { id: '3.5', label: '인증서 교체-야간/주말', nextSteps: '4.2' },
+      { id: '3.6', label: '마이너 업그레이드/기능패치', nextSteps: '4.1' },
+      { id: '3.7', label: '취약점/보안 패치', nextSteps: '4.2' },
+      { id: '3.8', label: 'OS 업그레이드', nextSteps: '4.2' },
+      { id: '3.9', label: '서버 증설·이전', nextSteps: '4.2' },
+      { id: '3.10', label: 'DB 업그레이드·이전', nextSteps: '4.2' },
+      { id: '3.11', label: 'TSS-일반시간', nextSteps: '4.2' },
+      { id: '3.12', label: 'TSS-야간/주말', nextSteps: '4.2' }
+    ]
+  },
+  {
+    id: 4,
+    title: '유무상 결정',
+    items: [
+      { id: '4.1', label: '무상(하자보수/계약내)', nextSteps: '5.1, 5.2, 5.3' },
+      { id: '4.2', label: '유상(계약외/선택형)', nextSteps: '5.1, 5.2, 5.3, 5.4' },
+      { id: '4.3', label: '계약 확인 필요(미계약/만료/EOL/EOS)', nextSteps: '5.4' },
+      { id: '4.4', label: 'EOL/EOS 해당(업그레이드 권고)', nextSteps: '5.4' }
+    ]
+  },
+  {
+    id: 5,
+    title: '작업방식/승인 및 배정',
+    items: [
+      { id: '5.1', label: '담당자 직접 처리', nextSteps: '9' },
+      { id: '5.2', label: '내부 처리(팀장보고)', nextSteps: '6.1' },
+      { id: '5.3', label: '지원 요청(본부장보고)', nextSteps: '6.2' },
+      { id: '5.4', label: '영업대표 전달(견적/계약)', nextSteps: '6.3' },
+      { id: '5.5', label: '고객 승인(다운타임/보안 등)', nextSteps: '6.1, 6.2, 6.3' },
+      { id: '5.6', label: '휴일/야간 승인(최소 5영업일 전 접수)', nextSteps: '6.1, 6.2, 6.3' },
+      { id: '5.7', label: '변경관리(CAB) 승인', nextSteps: '6.1, 6.2, 6.3' }
+    ]
+  },
+  {
+    id: 6,
+    title: '작업 채널 구분',
+    items: [
+      { id: '6.1', label: '내부 처리(엔지니어 수행)', nextSteps: '9' },
+      { id: '6.2', label: '외부 지원(본사/파트너/벤더)', nextSteps: '9' },
+      { id: '6.3', label: '영업 프로세스(견적/계약/PO)', nextSteps: '7.1, 7.2, 7.3' }
+    ]
+  },
+  {
+    id: 7,
+    title: '재협의 후 작업방식 결정',
+    items: [
+      { id: '7.1', label: '담당자 직접 처리', nextSteps: '9' },
+      { id: '7.2', label: '내부 처리(팀장보고)', nextSteps: '8.1' },
+      { id: '7.3', label: '지원 요청(본부장보고)', nextSteps: '8.2' }
+    ]
+  },
+  {
+    id: 8,
+    title: '재협의 후 작업 채널 구분',
+    items: [
+      { id: '8.1', label: '내부 처리(엔지니어 수행)', nextSteps: '9' },
+      { id: '8.2', label: '외부 지원(본사/파트너/벤더)', nextSteps: '9' }
+    ]
+  },
+  {
+    id: 9,
+    title: '완료(리포트/이력 저장)',
+    items: [
+      { id: '9.1', label: '완료', nextSteps: '' }
+    ]
+  }
+];
+
+Vue.createApp({
+  data() {
+    return {
+      workflowSteps,
+      theme: document.body.dataset.theme || 'dark',
+      started: false,
+      // 각 단계별 선택된 항목 저장: { stageId: itemId }
+      selections: {},
+      // 화면에 표시될 단계들의 배열 (동적으로 변경됨)
+      visibleStages: [],
+      scale: 1,
+      isFit: false,
+      lines: [],
+      linesFlowEnabled: true, // 줌 시 점선이 사라지지 않도록 흐름 애니메이션 상태 보존
+      connectorSize: { width: 0, height: 0 },
+      prefersReducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+      // 디버깅 토글 (임시): true면 진행도 우측에 단계/캔버스 폭 표기
+      debugEnabled: true,
+      dragState: {
+        active: false,
+        startX: 0,
+        startY: 0,
+        scrollLeft: 0,
+        scrollTop: 0
+      }
+    };
+  },
+  computed: {
+    /**
+     * 선택된 단계의 개수
+     */
+    selectedCount() {
+      return Object.keys(this.selections).length;
+    },
+    /**
+     * 현재 경로에서 예상되는 최대 단계 수 (동적 계산)
+     */
+    expectedMaxSteps() {
+      // 아직 시작하지 않았으면 전체 단계 수
+      if (this.visibleStages.length === 0) {
+        return this.workflowSteps.length;
+      }
+
+      // 마지막 표시된 단계 확인
+      const lastStage = this.visibleStages[this.visibleStages.length - 1];
+
+      // 9단계(완료)에 도달했으면 현재까지의 단계 수가 최대
+      if (lastStage.stage.id === 9) {
+        return this.visibleStages.length;
+      }
+
+      // 현재 선택된 경로를 기반으로 최대 단계 수 예측
+      // 마지막 선택된 항목의 nextSteps를 확인하여 남은 단계 수 계산
+      const lastSelectedStageId = Math.max(...Object.keys(this.selections).map(Number));
+      const lastSelectedItemId = this.selections[lastSelectedStageId];
+
+      if (lastSelectedItemId) {
+        const lastSelectedStage = this.workflowSteps.find(s => s.id === lastSelectedStageId);
+        const lastSelectedItem = lastSelectedStage?.items.find(item => item.id === lastSelectedItemId);
+
+        if (lastSelectedItem && lastSelectedItem.nextSteps) {
+          // nextSteps 파싱하여 남은 단계 수 예측
+          const nextSteps = this.parseNextSteps(lastSelectedItem.nextSteps);
+          let maxRemainingSteps = 0;
+
+          nextSteps.forEach(({ stageId }) => {
+            // 각 다음 단계부터 9단계까지의 최대 거리 계산
+            const distanceTo9 = this.calculateMaxDistanceToCompletion(stageId);
+            maxRemainingSteps = Math.max(maxRemainingSteps, distanceTo9);
+          });
+
+          return this.selectedCount + maxRemainingSteps;
+        }
+      }
+
+      // 기본값: 현재까지 선택 + 최대 예상 남은 단계 (9 - 현재 최대 단계 ID)
+      return this.selectedCount + (this.workflowSteps.length - lastSelectedStageId);
+    },
+    /**
+     * 주어진 단계 ID에서 완료(9단계)까지의 최대 거리 계산
+     */
+    calculateMaxDistanceToCompletion(stageId) {
+      // 이미 9단계(완료)면 1 (자기 자신만)
+      if (stageId === 9) {
+        return 1;
+      }
+
+      // 단계별 최대 거리 매핑 (미리 계산된 값)
+      const maxDistanceMap = {
+        1: 5, // 1→2→4→5.1→9 (최소 5단계)
+        2: 4, // 2→4→5.1→9 (최소 4단계)
+        3: 4, // 3→4→5.1→9 (최소 4단계)
+        4: 3, // 4→5.1→9 (최소 3단계)
+        5: 5, // 5→6→7→8→9 (최대 5단계)
+        6: 4, // 6→7→8→9 (최대 4단계)
+        7: 3, // 7→8→9 (최대 3단계)
+        8: 2, // 8→9 (최대 2단계)
+        9: 1  // 9 (완료)
+      };
+
+      return maxDistanceMap[stageId] || 1;
+    },
+    /**
+     * 전체 단계 대비 진행률 (0~1) - 동적 최대 단계 수 기준
+     */
+    progressRatio() {
+      return this.expectedMaxSteps ? this.selectedCount / this.expectedMaxSteps : 0;
+    },
+    /**
+     * 줌 퍼센트 표시
+     */
+    zoomPercent() {
+      return Math.round(this.scale * 100);
+    },
+    /**
+     * 캔버스 스타일 (스케일 적용)
+     */
+    canvasStyle() {
+      return { '--workflow-scale': this.scale };
+    },
+    /**
+     * 디버깅용 뷰포트 폭(px) - workflow-viewport의 clientWidth 반환
+     */
+    canvasWidthPx() {
+      // visibleStages.length를 참조하여 반응성 트리거
+      this.visibleStages.length;
+      const viewport = this.$refs.workflowViewport;
+      return viewport ? viewport.clientWidth : 0;
+    },
+    /**
+     * 디버깅용 캔버스 크기(px) - 계산크기 기준으로 강제 설정
+     */
+    canvasSizePx() {
+      // visibleStages.length를 참조하여 반응성 트리거
+      this.visibleStages.length;
+      const canvas = this.$refs.workflowCanvas;
+      if (!canvas) return '원본 0x0 → 스케일 0x0';
+      
+      // 계산크기 기준으로 강제 설정
+      const calculatedWidth = this.visibleStages.length * 346;
+      const originalHeight = canvas.scrollHeight;
+      const scaledWidth = Math.round(calculatedWidth * this.scale);
+      const scaledHeight = Math.round(originalHeight * this.scale);
+      
+      return `원본 ${calculatedWidth}x${originalHeight} → 스케일 ${scaledWidth}x${scaledHeight}`;
+    },
+    /**
+     * 디버깅용 보드 너비(px) - workflow-board의 clientWidth 반환
+     */
+    boardWidthPx() {
+      // visibleStages.length를 참조하여 반응성 트리거
+      this.visibleStages.length;
+      const board = this.$refs.workflowBoard;
+      return board ? board.clientWidth : 0;
+    },
+    /**
+     * 디버깅용 스테이지리스트 너비(px) - workflow-stage-list의 width 스타일 값 반환
+     */
+    stageListWidthPx() {
+      // visibleStages.length를 참조하여 반응성 트리거
+      this.visibleStages.length;
+      const stageList = this.$refs.stageListWrapper;
+      if (!stageList) return '0 (미설정)';
+      const width = stageList.style.width || '미설정';
+      return width;
+    }
+  },
+  watch: {
+    theme(newTheme) {
+      this.commitTheme(newTheme);
+    }
+  },
+  mounted() {
+    try {
+      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+      if (savedTheme) {
+        this.theme = savedTheme;
+      } else {
+        this.commitTheme(this.theme);
+      }
+    } catch (error) {
+      this.commitTheme(this.theme);
+    }
+
+    window.addEventListener('mousemove', this.handleDragMove);
+    window.addEventListener('mouseup', this.handleDragEnd);
+    window.addEventListener('blur', this.handleDragEnd);
+    window.addEventListener('resize', this.handleResize);
+  },
+  beforeUnmount() {
+    window.removeEventListener('mousemove', this.handleDragMove);
+    window.removeEventListener('mouseup', this.handleDragEnd);
+    window.removeEventListener('blur', this.handleDragEnd);
+    window.removeEventListener('resize', this.handleResize);
+  },
+  methods: {
+    /**
+     * 테마 설정 적용 및 저장
+     */
+    commitTheme(theme) {
+      const next = theme === 'light' ? 'light' : 'dark';
+      document.body.dataset.theme = next;
+      try {
+        localStorage.setItem(THEME_STORAGE_KEY, next);
+      } catch (error) {
+        /* ignore */
+      }
+    },
+    
+    /**
+     * 단계 번호를 2자리 문자열로 변환 (01, 02, ...)
+     */
+    padStep(stageId) {
+      return String(stageId).padStart(2, '0');
+    },
+    
+    /**
+     * 선택된 항목의 라벨 반환
+     * @param {object} visibleStage - { stage, visibleItems }
+     * @returns {string} 선택된 항목의 라벨
+     */
+    getSelectedLabel(visibleStage) {
+      const selectedItemId = this.selections[visibleStage.stage.id];
+      if (!selectedItemId) return '';
+      
+      const selectedItem = visibleStage.visibleItems.find(item => item.id === selectedItemId);
+      return selectedItem ? selectedItem.label : '';
+    },
+    
+    /**
+     * 워크플로우 시작 - 첫 번째 단계만 표시
+     */
+    startFlow() {
+      this.started = true;
+      this.selections = {};
+      this.lines = [];
+      this.connectorSize = { width: 0, height: 0 };
+      
+      // 첫 번째 단계만 표시 (전체 항목 표시)
+      const firstStage = this.workflowSteps[0];
+      this.visibleStages = [{ stage: firstStage, visibleItems: firstStage.items }];
+      
+      this.$nextTick(() => {
+        this.updateConnections();
+        const firstOptions = this.$refs.stageCards?.[0]?.querySelector('.workflow-option');
+        if (firstOptions && !this.prefersReducedMotion) {
+          firstOptions.focus({ preventScroll: true });
+        }
+      });
+    },
+    
+    /**
+     * 워크플로우 초기화
+     */
+    resetFlow() {
+      this.started = false;
+      this.selections = {};
+      this.visibleStages = [];
+      this.lines = [];
+      this.connectorSize = { width: 0, height: 0 };
+      this.scale = 1;
+      
+      // DOM 업데이트 후 스크롤 위치 초기화
+      this.$nextTick(() => {
+        const viewport = this.$refs.workflowViewport;
+        if (viewport) {
+          viewport.scrollTo({ left: 0, top: 0, behavior: 'auto' });
+          
+          const container = this.$refs.stageListWrapper;
+          if (container) {
+            container.style.width = '100%';
+            container.offsetHeight; // 강제 리플로우
+          }
+        }
+      });
+    },
+    /**
+     * 항목 선택 처리 및 다음 단계 결정
+     * @param {number} visibleStageIndex - visibleStages 배열에서의 인덱스
+     * @param {object} item - 선택된 항목 객체
+     */
+    handleSelection(visibleStageIndex, item) {
+      const currentVisibleStage = this.visibleStages[visibleStageIndex];
+      if (!currentVisibleStage) return;
+      // 이전 단계로 돌아가 재선택하는지 여부 판단 (현재 보이는 마지막 단계보다 앞이면 뒤로 가는 동작)
+      const isBackNavigation = visibleStageIndex < (this.visibleStages.length - 1);
+      
+      const stageId = currentVisibleStage.stage.id;
+      const itemId = item.id;
+      
+      // 현재 단계의 선택 저장
+      this.selections[stageId] = itemId;
+      
+      // 현재 단계 이후의 모든 선택 제거
+      const currentStageIdNum = parseInt(stageId);
+      Object.keys(this.selections).forEach(key => {
+        if (parseInt(key) > currentStageIdNum) {
+          delete this.selections[key];
+        }
+      });
+      
+      // 현재 단계 이후의 화살표만 제거 (현재 단계로 들어오는 화살표는 유지)
+      this.lines = this.lines.filter(line => {
+        // line.id 형식: "line-{stageId1}-to-{stageId2}"
+        const match = line.id.match(/line-(\d+)-to-(\d+)/);
+        if (match) {
+          const fromStageId = parseInt(match[1]);
+          const toStageId = parseInt(match[2]);
+          // 현재 단계 이후로 가는 화살표만 제거, 현재 단계로 들어오는 화살표는 유지
+          return !(fromStageId >= currentStageIdNum || toStageId > currentStageIdNum);
+        }
+        return false;
+      });
+      
+      // 현재 단계까지만 유지하고 이후 단계 제거
+      this.visibleStages = this.visibleStages.slice(0, visibleStageIndex + 1);
+      
+      // 다음 단계 파싱 및 추가
+      const nextSteps = this.parseNextSteps(item.nextSteps);
+      if (nextSteps.length > 0) {
+        this.addNextStages(nextSteps);
+      }
+      // 이전 단계로 돌아간 경우, "현재 단계 + 다음 단계"까지만 표시되도록 강제 제한
+      if (isBackNavigation) {
+        const maxCount = Math.min(this.visibleStages.length, visibleStageIndex + 2);
+        this.visibleStages = this.visibleStages.slice(0, maxCount);
+      }
+      
+      this.$nextTick(() => {
+           // 캔버스 크기 먼저 업데이트 (visibleStages 기준)
+           const container = this.$refs.stageListWrapper;
+           if (container && this.visibleStages.length > 0) {
+             const stageWidth = 366; // 단계당 346px + 20px 여유 공간
+          const totalWidth = this.visibleStages.length * stageWidth;
+          container.style.width = `${totalWidth}px`;
+          container.style.minWidth = `${totalWidth}px`;
+          container.style.maxWidth = `${totalWidth}px`;
+        }
+        
+          // DOM 업데이트 후 화살선 및 캔버스 크기 업데이트 (기존 화살선 유지)
+          this.updateConnections(false);
+        
+        this.$nextTick(() => {
+          // 항목 선택 시 항상 기본 크기로 리셋 (이전 단계든 다음 단계든 상관없이)
+          this.resetZoom();
+          
+          // 항목 선택 시 항상 우측 끝으로 스크롤
+          this.scrollToRight();
+          
+          if (!this.prefersReducedMotion) {
+            const nextStage = this.$refs.stageCards?.[visibleStageIndex + 1];
+            const nextButton = nextStage?.querySelector('.workflow-option');
+            if (nextButton) {
+              nextButton.focus({ preventScroll: true });
+            }
+          }
+        });
+      });
+    },
+    
+    /**
+     * nextSteps 문자열을 파싱하여 다음 단계 정보 반환
+     * @param {string} nextStepsStr - "2" 또는 "3.1, 3.2, 3.3" 형태의 문자열
+     * @returns {Array} [{ stageId: 3, itemIds: ['3.1', '3.2', '3.3'] }] 형태
+     */
+    parseNextSteps(nextStepsStr) {
+      if (!nextStepsStr || nextStepsStr.trim() === '') {
+        return [];
+      }
+      
+      // 쉼표로 구분된 단계들을 분리
+      const steps = nextStepsStr.split(',').map(s => s.trim()).filter(s => s);
+      
+      // 단계별로 그룹화
+      const stageMap = new Map();
+      
+      steps.forEach(step => {
+        // "3.1" 또는 "2" 형태
+        const parts = step.split('.');
+        const stageId = parseInt(parts[0]);
+        
+        if (!stageMap.has(stageId)) {
+          stageMap.set(stageId, []);
+        }
+        
+        // 소숫점이 있으면 특정 항목만, 없으면 전체
+        if (parts.length > 1) {
+          stageMap.get(stageId).push(step);
+        }
+      });
+      
+      // Map을 배열로 변환
+      const result = [];
+      stageMap.forEach((itemIds, stageId) => {
+        result.push({
+          stageId,
+          itemIds: itemIds.length > 0 ? itemIds : null // null이면 전체 항목 표시
+        });
+      });
+      
+      // stageId 순서대로 정렬
+      result.sort((a, b) => a.stageId - b.stageId);
+      
+      return result;
+    },
+    
+    /**
+     * 다음 단계들을 visibleStages에 추가
+     * @param {Array} nextSteps - parseNextSteps의 반환값
+     */
+    addNextStages(nextSteps) {
+      nextSteps.forEach(({ stageId, itemIds }) => {
+        // 해당 단계 찾기
+        const stage = this.workflowSteps.find(s => s.id === stageId);
+        if (!stage) return;
+        
+        // 표시할 항목 결정
+        let visibleItems;
+        if (itemIds === null) {
+          // 전체 항목 표시
+          visibleItems = stage.items;
+        } else {
+          // 특정 항목만 표시
+          visibleItems = stage.items.filter(item => itemIds.includes(item.id));
+        }
+        
+        // visibleStages에 추가 (중복 체크)
+        const alreadyExists = this.visibleStages.some(vs => vs.stage.id === stageId);
+        if (!alreadyExists && visibleItems.length > 0) {
+          this.visibleStages.push({
+            stage,
+            visibleItems
+          });
+        }
+      });
+    },
+    /**
+     * 화살표 연결선 업데이트
+     * @param {boolean} forceRecalculate - true면 전체 재계산, false면 새로운 화살선만 추가
+     */
+    updateConnections(forceRecalculate = false) {
+      const container = this.$refs.stageListWrapper;
+      if (!container) {
+        this.connectorSize = { width: 0, height: 0 };
+        return;
+      }
+
+      // 컨테이너 크기 계산 (단계 개수 x 고정 너비) - stageCards 유무와 무관하게 항상 갱신
+      const stageCount = this.visibleStages.length || 0;
+      if (stageCount >= 0) {
+        const stageWidth = 366; // 단계당 346px + 20px 여유 공간
+        const totalWidth = stageCount * stageWidth;
+
+        container.style.width = `${totalWidth}px`;
+        container.style.minWidth = `${totalWidth}px`;
+        container.style.maxWidth = `${totalWidth}px`;
+      }
+
+      const stageCards = this.$refs.stageCards || [];
+      if (!stageCards.length) {
+        // 카드 DOM이 아직 준비되지 않은 경우에도 계산크기 기준으로 SVG 사이즈 설정
+        const calculatedWidth = stageCount * 366;
+        this.connectorSize = {
+          width: calculatedWidth,
+          height: container.scrollHeight
+        };
+        return;
+      }
+        
+        // 확대/축소 시 getBoundingClientRect는 transform 비율을 반영하므로,
+        // 내부 좌표를 정확히 계산하기 위해 scale로 역보정한다
+        const containerRect = container.getBoundingClientRect();
+        
+        // 기존 화살선 유지 (forceRecalculate가 false인 경우)
+        let existingLines = [];
+        if (!forceRecalculate && this.lines.length > 0) {
+          existingLines = [...this.lines];
+        }
+        
+        // 새로 추가할 화살선만 생성
+        const newLines = [];
+        
+        // 선택된 단계들 간의 연결선 생성
+        for (let i = 0; i < this.visibleStages.length - 1; i++) {
+          const currentStage = this.visibleStages[i];
+          const nextStage = this.visibleStages[i + 1];
+          
+          // 현재 단계가 선택되어 있고, 다음 단계도 선택되어 있는 경우에만 화살선 표시
+          if (!this.selections[currentStage.stage.id] || !this.selections[nextStage.stage.id]) {
+            continue;
+          }
+          
+          const lineId = `line-${currentStage.stage.id}-to-${nextStage.stage.id}`;
+          
+          // 이미 존재하는 화살선인지 확인
+          const existingLine = existingLines.find(line => line.id === lineId);
+          if (existingLine && !forceRecalculate) {
+            // 기존 화살선 유지
+            continue;
+          }
+          
+          const startCard = stageCards[i];
+          const endCard = stageCards[i + 1];
+          if (!startCard || !endCard) {
+            continue;
+          }
+          
+          // 선택된 옵션 버튼 찾기
+          const startOption = startCard.querySelector('.workflow-option.is-selected');
+          const endOption = endCard.querySelector('.workflow-option.is-selected');
+          
+          if (!startOption || !endOption) {
+            continue;
+          }
+          
+          const scaleFactor = this.scale || 1;
+          const startRect = startOption.getBoundingClientRect();
+          const endRect = endOption.getBoundingClientRect();
+
+          // 좌표를 viewport 기준(getBoundingClientRect)에서 컨테이너 로컬 좌표(비스케일)로 보정
+          const startX = (startRect.right - containerRect.left) / scaleFactor;
+          const startY = ((startRect.top + startRect.height / 2) - containerRect.top) / scaleFactor;
+          const endX = (endRect.left - containerRect.left) / scaleFactor;
+          const endY = ((endRect.top + endRect.height / 2) - containerRect.top) / scaleFactor;
+          
+          // 베지어 곡선 경로 생성
+          const controlPoint1X = startX + (endX - startX) * 0.3;
+          const controlPoint1Y = startY;
+          const controlPoint2X = startX + (endX - startX) * 0.7;
+          const controlPoint2Y = endY;
+          
+          const path = `M ${startX} ${startY} C ${controlPoint1X} ${controlPoint1Y}, ${controlPoint2X} ${controlPoint2Y}, ${endX} ${endY}`;
+          
+          newLines.push({
+            id: lineId,
+            stageIndex: i,
+            startX,
+            startY,
+            endX,
+            endY,
+            controlPoint1X,
+            controlPoint1Y,
+            controlPoint2X,
+            controlPoint2Y,
+            path,
+            active: true,
+            flow: this.linesFlowEnabled,
+            draw: forceRecalculate ? false : true
+          });
+        }
+
+        // 기존 화살선과 새 화살선 병합
+        const allLines = [...existingLines, ...newLines];
+        
+        // SVG 크기 계산 - 모든 좌표(시작점, 끝점, 제어점)를 고려 (scale 역보정된 값 기준)
+        let maxX = 0;
+        let maxY = 0;
+        allLines.forEach(line => {
+          maxX = Math.max(maxX, line.startX, line.endX);
+          maxY = Math.max(maxY, line.startY, line.endY);
+          // 제어점도 고려
+          if (line.controlPoint1X !== undefined) {
+            maxX = Math.max(maxX, line.controlPoint1X, line.controlPoint2X);
+            maxY = Math.max(maxY, line.controlPoint1Y, line.controlPoint2Y);
+          }
+        });
+        
+        // 계산크기 기준으로 SVG 크기 설정 (항상 계산크기와 동일하게)
+        const calculatedWidth = stageCount * 366; // 단계당 346px + 20px 여유 공간
+        const containerHeight = container.scrollHeight;
+
+        // 캔버스는 계산크기와 정확히 일치하도록 SVG 크기 설정
+        this.connectorSize = {
+          width: calculatedWidth,
+          height: containerHeight
+        };
+        // 라인 상태를 반영하여 애니메이션 클래스 토글
+        this.lines = allLines.map(line => ({
+          ...line,
+          // 렌더에서 클래스 계산 용도
+          cssClassFlow: line.flow ? 'has-flow' : '',
+          cssClassDraw: line.draw ? 'animate-draw' : ''
+        }));
+        
+      // 컨테이너 너비 최적화
+      if (container) {
+        if (this.visibleStages.length === 0) {
+          container.style.width = '100%';
+        }
+        container.offsetHeight; // 강제 리플로우
+      }
+    },
+    changeZoom(delta) {
+      const next = Math.min(1.5, Math.max(0.3, +(this.scale + delta).toFixed(2)));
+      // 전체보기 상태에서는 축소 불가 (전체 보이는 비율 이하로 내려가지 않게)
+      if (this.isFit && next < this.scale) {
+        return;
+      }
+      this.scale = next;
+      this.isFit = false;
+      // 줌 중에는 흐름 애니메이션 유지, 그리기 애니메이션은 비활성화
+      this.linesFlowEnabled = true;
+      // zoom 변경 시 화살선 위치 재계산 - DOM 렌더링 완료 후 실행
+      this.$nextTick(() => {
+        requestAnimationFrame(() => {
+          this.updateConnections(true);
+        });
+      });
+    },
+    resetZoom() {
+      this.scale = 1;
+      this.isFit = false;
+      this.linesFlowEnabled = true;
+      // zoom 변경 시 화살선 위치 재계산 - DOM 렌더링 완료 후 실행
+      this.$nextTick(() => {
+        requestAnimationFrame(() => {
+          this.updateConnections(true);
+        });
+      });
+    },
+    fitToView() {
+      this.$nextTick(() => {
+        const viewport = this.$refs.workflowViewport;
+        const container = this.$refs.stageListWrapper;
+        if (!viewport || !container) {
+          return;
+        }
+        
+        // 먼저 스케일을 1로 리셋하고 컨테이너 크기 제한 제거
+        this.scale = 1;
+        container.style.width = '';
+        container.style.minWidth = '';
+        container.style.maxWidth = '';
+        
+        this.$nextTick(() => {
+          // 정확한 콘텐츠 크기 측정
+          const contentWidth = container.scrollWidth;
+          const contentHeight = container.scrollHeight;
+          
+          if (!contentWidth || !contentHeight) {
+            return;
+          }
+          
+          // 뷰포트 크기에 딱 맞는 스케일 계산 (여유를 두어 스크롤 방지)
+          const widthRatio = (viewport.clientWidth / contentWidth) * 0.96; // 4% 여유
+          const heightRatio = (viewport.clientHeight / contentHeight) * 0.96; // 4% 여유
+          const target = Math.min(widthRatio, heightRatio);
+          
+          this.scale = Math.min(1.5, Math.max(0.3, +target.toFixed(3)));
+          this.isFit = true;
+          
+          viewport.scrollTo({ left: 0, top: 0, behavior: 'auto' });
+          // zoom 변경 시 화살선 위치 재계산 - DOM 렌더링 완료 후 실행
+          this.$nextTick(() => {
+            requestAnimationFrame(() => {
+              this.updateConnections(true);
+            });
+          });
+        });
+      });
+    },
+    /**
+     * 이전 단계로 돌아가 재선택했을 때, 현재 표시 중인 단계(콘텐츠) 크기에 맞춰 자동 축소
+     * - 축소만 적용(현재 배율보다 작아질 때만 변경), 확대는 하지 않음
+     * - 변경 후 커넥터 좌표를 rAF로 재계산하여 정확한 위치 보정
+     */
+    autoShrinkToFitCurrentView() {
+      this.$nextTick(() => {
+        const viewport = this.$refs.workflowViewport;
+        const container = this.$refs.stageListWrapper;
+        if (!viewport || !container) {
+          return;
+        }
+        const contentWidth = container.scrollWidth;
+        const contentHeight = container.scrollHeight;
+        if (!contentWidth || !contentHeight) {
+          return;
+        }
+        const widthRatio = (viewport.clientWidth / contentWidth) * 0.96; // 4% 여유
+        const heightRatio = (viewport.clientHeight / contentHeight) * 0.96; // 4% 여유
+        const target = Math.min(widthRatio, heightRatio);
+        const clamped = Math.min(1.5, Math.max(0.3, +target.toFixed(3)));
+        // 요구사항상 "줄어들도록"만 적용: 현재 배율보다 작을 때만 축소
+        if (clamped < this.scale) {
+          this.scale = clamped;
+          this.isFit = false;
+          this.linesFlowEnabled = true;
+          this.$nextTick(() => {
+            requestAnimationFrame(() => {
+              this.updateConnections(true);
+            });
+          });
+        }
+      });
+    },
+    handleDragStart(event) {
+      const viewport = this.$refs.workflowViewport;
+      if (!viewport || event.button !== 0) {
+        return;
+      }
+      // 버튼, 셀렉트, 링크, 인풋 등 인터랙티브 요소에서는 드래그 비활성화
+      if (event.target.closest('button, select, a, input, textarea, .workflow-option')) {
+        return;
+      }
+      if (this.isFit) {
+        // 전체보기에서는 드래그 불가
+        return;
+      }
+      this.dragState.active = true;
+      this.dragState.startX = event.clientX;
+      this.dragState.startY = event.clientY;
+      this.dragState.scrollLeft = viewport.scrollLeft;
+      this.dragState.scrollTop = viewport.scrollTop;
+      document.body.classList.add('is-dragging');
+      event.preventDefault();
+      event.stopPropagation();
+    },
+    handleDragMove(event) {
+      if (!this.dragState.active) {
+        return;
+      }
+      const viewport = this.$refs.workflowViewport;
+      if (!viewport) {
+        return;
+      }
+      if (this.isFit) {
+        return;
+      }
+      const deltaX = event.clientX - this.dragState.startX;
+      const deltaY = event.clientY - this.dragState.startY;
+      viewport.scrollLeft = this.dragState.scrollLeft - deltaX;
+      viewport.scrollTop = this.dragState.scrollTop - deltaY;
+    },
+    handleDragEnd() {
+      this.dragState.active = false;
+      document.body.classList.remove('is-dragging');
+    },
+    handleResize() {
+      // 리사이즈 시에만 화살선 재계산
+      this.$nextTick(() => this.updateConnections(true));
+    },
+    handleWheel(event) {
+      const viewport = this.$refs.workflowViewport;
+      if (!viewport) {
+        return;
+      }
+      
+      // 인터랙티브 요소에서는 휠 스크롤 비활성화
+      if (event.target.closest('button, select, a, input, textarea, .workflow-option')) {
+        return;
+      }
+      // 전체보기 상태에서는 좌우 스크롤/드래그 방지 대신 스크롤 대상 자체를 제한
+      if (this.isFit) {
+        // 스크롤이 의미 없으므로 막음
+        event.preventDefault();
+        return;
+      }
+
+      // Ctrl 키와 함께 휠을 사용하면 빠른 좌우 스크롤
+      if (event.ctrlKey) {
+        event.preventDefault();
+        const scrollAmount = event.deltaY * 2; // Ctrl+휠은 더 빠른 스크롤
+        viewport.scrollLeft += scrollAmount;
+      } else {
+        // 일반 휠은 좌우 스크롤 (상하 휠로 좌우 스크롤)
+        event.preventDefault();
+        const scrollAmount = event.deltaY * 1; // 스크롤 속도
+        viewport.scrollLeft += scrollAmount;
+      }
+    },
+    scrollToRight() {
+      this.$nextTick(() => {
+        const viewport = this.$refs.workflowViewport;
+        if (viewport) {
+          // 충분히 큰 값으로 스크롤하여 확실히 우측 끝까지 이동
+          viewport.scrollTo({ left: 10000, behavior: 'smooth' });
+        }
+      });
+    },
+    /**
+     * 특정 단계가 화면 오른쪽 끝에 보이도록 스크롤
+     * @param {number} stageIndex - 보여줄 단계의 인덱스
+     */
+    scrollToShowStage(stageIndex) {
+      this.$nextTick(() => {
+        const viewport = this.$refs.workflowViewport;
+        const stageCards = this.$refs.stageCards;
+        if (viewport && stageCards && stageCards[stageIndex]) {
+          const targetCard = stageCards[stageIndex];
+          const cardRect = targetCard.getBoundingClientRect();
+          const viewportRect = viewport.getBoundingClientRect();
+          
+          // 목표: 타겟 카드의 오른쪽 끝이 뷰포트의 오른쪽 끝에 위치하도록 스크롤
+          const scrollLeft = viewport.scrollLeft + (cardRect.right - viewportRect.right);
+          viewport.scrollTo({ left: Math.max(0, scrollLeft), behavior: 'smooth' });
+        }
+      });
+    },
+    /**
+     * 현재 워크플로우 화면을 이미지로 저장
+     * html2canvas 라이브러리를 사용하여 DOM을 캔버스로 변환 후 PNG 이미지로 다운로드
+     */
+    async saveAsImage() {
+      if (!this.started) {
+        return;
+      }
+      
+      try {
+        // 워크플로우 단계 리스트 영역을 캡처 (전체 스크롤 영역 포함)
+        const stageList = this.$refs.stageListWrapper;
+        if (!stageList) {
+          alert('캡처할 영역을 찾을 수 없습니다.');
+          return;
+        }
+        
+        // 전체 영역 크기 계산 (여유 공간 추가하여 잘림 방지)
+        const leftPadding = 20; // 왼쪽 여유 공간 (20px 추가)
+        const topPadding = 50; // 위쪽 여유 공간 (50px 추가)
+        const rightPadding = 50; // 오른쪽 여유 공간
+        const bottomPadding = -50; // 하단 여유 공간 (50px 제거)
+        const totalWidth = stageList.scrollWidth + leftPadding + rightPadding;
+        const totalHeight = stageList.scrollHeight + topPadding + bottomPadding;
+        
+        // html2canvas로 DOM을 이미지로 변환 (전체 스크롤 영역 포함)
+        const capturedCanvas = await html2canvas(stageList, {
+          backgroundColor: null,
+          scale: 2, // 고해상도 이미지를 위한 스케일
+          logging: false,
+          useCORS: true,
+          allowTaint: true,
+          x: -leftPadding,
+          y: -topPadding,
+          scrollX: -leftPadding,
+          scrollY: -topPadding,
+          width: totalWidth,
+          height: totalHeight,
+          windowWidth: totalWidth,
+          windowHeight: totalHeight
+        });
+        
+        // 캔버스를 Blob으로 변환
+        capturedCanvas.toBlob((blob) => {
+          if (!blob) {
+            alert('이미지 생성에 실패했습니다.');
+            return;
+          }
+          
+          // 다운로드 링크 생성
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+          link.download = `workflow-${timestamp}.png`;
+          link.href = url;
+          link.click();
+          
+          // 메모리 정리
+          URL.revokeObjectURL(url);
+        }, 'image/png');
+      } catch (error) {
+        console.error('이미지 저장 중 오류 발생:', error);
+        alert('이미지 저장에 실패했습니다.');
+      }
+    }
+  }
+}).mount('.page');
+</script>
+</body>
+</html>
+
