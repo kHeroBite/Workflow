@@ -2003,21 +2003,12 @@ Vue.createApp({
               return;
             }
 
-            // 끝 단계 옵션 확인
-            let endOption = endCard.querySelector('.workflow-option.is-selected');
+            // 끝 단계 옵션 확인 (반드시 선택되어 있어야 함)
+            const endOption = endCard.querySelector('.workflow-option.is-selected');
 
-            // 끝 단계가 선택되지 않았으면 처리
             if (!endOption) {
-              // 다음 단계의 옵션이 1개일 때만 자동 연결
-              const nextOptions = endCard.querySelectorAll('.workflow-option');
-              if (nextOptions.length === 1) {
-                endOption = nextOptions[0];
-                this.logAction(`화살선 자동 연결: ${lineId} | 끝 단계(${nextStageId}) 옵션 1개, 자동 연결`);
-              } else {
-                // 옵션이 여러 개면 화살선 그리지 않음 (사용자 선택 대기)
-                this.logAction(`화살선 건너뜀: ${lineId} | 이유: 끝 단계(${nextStageId}) 미선택 (옵션 ${nextOptions.length}개)`);
-                return;
-              }
+              this.logAction(`화살선 건너뜀: ${lineId} | 이유: 끝 단계(${nextStageId}) 미선택`);
+              return;
             }
 
             const scaleFactor = this.scale || 1;
