@@ -885,22 +885,25 @@ body[data-theme="light"] .workflow-stage__step {
       </div>
     </div>
     <div class="toolbar__actions">
-      <button type="button" class="toolbar__button has-tooltip" id="saveImage" aria-label="이미지로 저장" data-tooltip="PNG로 내보내기" @click="saveAsImage" :disabled="!started">
+      <button type="button" class="toolbar__button toolbar__button--icon-only has-tooltip" id="saveImage" aria-label="이미지로 저장" data-tooltip="PNG로 내보내기" @click="saveAsImage" :disabled="!started">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="1.6" />
           <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
           <path d="M21 15l-5-5L5 21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
-        이미지 저장
       </button>
       <div class="toolbar__zoom-slider">
-        <input type="range" class="zoom-slider" v-model.number="scale" min="0.3" max="5" step="0.1" @input="onSliderChange" aria-label="줌 슬라이더" />
+        <input type="range" class="zoom-slider" v-model.number="scale" min="0.1" max="2" step="0.1" @input="onSliderChange" aria-label="줌 슬라이더" />
         <span class="zoom-slider__label">{{ zoomPercent }}%</span>
       </div>
       <button type="button" class="toolbar__button toolbar__button--icon-only has-tooltip" id="zoomFit" :aria-pressed="isFit ? 'true' : 'false'" aria-label="전체 보기" data-tooltip="전체 보기" @click="fitToView">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M3 3l7 7M21 3l-7 7M3 21l7-7M21 21l-7-7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
           <rect x="8" y="8" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          <polygon points="10,10 8,9 9,8" fill="currentColor" />
+          <polygon points="14,10 16,9 15,8" fill="currentColor" />
+          <polygon points="10,14 8,15 9,16" fill="currentColor" />
+          <polygon points="14,14 16,15 15,16" fill="currentColor" />
         </svg>
       </button>
       <button type="button" class="toolbar__button toolbar__button--icon-only has-tooltip" id="zoomOut" aria-label="축소" data-tooltip="축소" :disabled="isFit" @click="changeZoom(-0.1)">
@@ -1428,12 +1431,23 @@ Vue.createApp({
       // 다음 단계 파싱 및 추가
       const nextSteps = this.parseNextSteps(item.nextSteps);
       if (nextSteps.length > 0) {
-        this.addNextStages(nextSteps);
-      }
-      // 이전 단계로 돌아간 경우, "현재 단계 + 다음 단계"까지만 표시되도록 강제 제한
-      if (isBackNavigation) {
-        const maxCount = Math.min(this.visibleStages.length, visibleStageIndex + 2);
-        this.visibleStages = this.visibleStages.slice(0, maxCount);
+        if (isBackNavigation) {
+          // 이전 단계 재선택 시: 건너뛰는 단계가 있으면 현재 + 1 단계만 추가 (갑작스러운 완료 단계 방지)
+          const hasSkip = nextSteps.some(ns => ns.stageId > stageId + 1);
+          if (hasSkip) {
+            // 현재 단계 + 1 단계를 추가 (순차적 진행 강제)
+            const nextStage = this.workflowSteps.find(s => s.id === stageId + 1);
+            if (nextStage) {
+              this.addNextStages([{ stageId: nextStage.id, itemIds: null }]);
+            }
+          } else {
+            // 건너뛰기 없으면 정상 추가
+            this.addNextStages(nextSteps);
+          }
+        } else {
+          // 정상 진행 시: 모든 다음 단계 추가 (건너뛰기 허용)
+          this.addNextStages(nextSteps);
+        }
       }
       
       this.$nextTick(() => {
@@ -1707,7 +1721,7 @@ Vue.createApp({
       }
     },
     changeZoom(delta) {
-      const next = Math.min(5, Math.max(0.3, +(this.scale + delta).toFixed(2)));
+      const next = Math.min(2, Math.max(0.1, +(this.scale + delta).toFixed(2)));
       // 전체보기 상태에서는 축소 불가 (전체 보이는 비율 이하로 내려가지 않게)
       if (this.isFit && next < this.scale) {
         return;

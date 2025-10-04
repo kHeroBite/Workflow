@@ -229,11 +229,15 @@ This is a **maintenance workflow simulation application** built as a single-page
       - 이후 단계 선택 제거
       - 이후 화살표 제거 (현재 단계로 들어오는 화살표 유지)
       - parseNextSteps()로 다음 단계 파싱
-      - addNextStages()로 다음 단계 추가
+      - 이전 단계 재선택 시: 건너뛰는 단계(예: 5→9) 감지하여 현재+1 단계만 추가 (갑작스러운 완료 단계 방지)
+      - 정상 진행 시: 모든 다음 단계 추가 (건너뛰기 허용)
       - 캔버스 크기 업데이트 (visibleStages × 346px)
       - updateConnections(false) 호출
       - resetZoom() + scrollToRight()
     호출빈도: 매_선택마다 (사용자_인터랙션)
+    버그수정:
+      - 이전 단계 재선택 시 완료 단계가 갑자기 나타나는 문제 해결
+      - isBackNavigation 플래그로 뒤로 가기 감지, 건너뛰기 발생 시 순차 진행 강제
 
   - 함수명: updateConnections(forceRecalculate)
     역할: SVG 연결선 경로 재계산
@@ -801,11 +805,11 @@ JavaScript_스타일:
       - 기능: 자동 스케일 계산 (뷰포트에 맞춤)
       - aria-pressed: isFit 상태 반영
       - 동작: fitToView() 메서드 호출
-      - 아이콘: 4개 화살표 + 사각형 (fit to screen)
+      - 아이콘: 4개 화살표 + 사각형 + 화살촉 4개 (fit to screen)
       - 툴팁: "전체 보기"
 
     축소_버튼 (#zoomOut):
-      - 기능: scale - 0.1 (최소 0.3)
+      - 기능: scale - 0.1 (최소 0.1)
       - 비활성화: isFit=true 시
       - 아이콘: 마이너스 (-) 단순 아이콘
       - 툴팁: "축소"
@@ -817,7 +821,7 @@ JavaScript_스타일:
       - 툴팁: "기본 크기"
 
     확대_버튼 (#zoomIn):
-      - 기능: scale + 0.1 (최대 5.0)
+      - 기능: scale + 0.1 (최대 2.0)
       - 단축키: 없음 (클릭만)
       - 아이콘: 플러스 (+) 단순 아이콘
       - 툴팁: "확대"
@@ -825,12 +829,12 @@ JavaScript_스타일:
     개선사항:
       - 돋보기 제거, 직관적인 아이콘으로 변경
       - 툴팁 추가 (has-tooltip 클래스, data-tooltip 속성)
-      - 최대 줌 500%로 확장 (1.5 → 5.0)
+      - 줌 범위 조정 (30%~500% → 10%~200%)
 
     줌_슬라이더:
       - 클래스: .toolbar__zoom-slider
       - 구성: input[type="range"] + 퍼센트 라벨
-      - 범위: 0.3 ~ 5.0 (30% ~ 500%)
+      - 범위: 0.1 ~ 2.0 (10% ~ 200%)
       - 단계: 0.1
       - v-model: scale (양방향 바인딩)
       - 이벤트: @input="onSliderChange"
@@ -844,8 +848,10 @@ JavaScript_스타일:
       - 워크플로우 캡처 → PNG 다운로드
       - html2canvas 라이브러리 사용
       - 파일명: workflow-{timestamp}.png
+    디자인: 아이콘 전용 버튼 (toolbar__button--icon-only)
     비활성화: started=false 시
     아이콘: SVG 카메라
+    툴팁: "PNG로 내보내기"
     동작: saveAsImage() 메서드 호출
 
 진행도_바:
