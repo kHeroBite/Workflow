@@ -203,26 +203,26 @@ body::before {
   font-size: 0.85rem;
   color: var(--text-secondary);
 }
-.toolbar__theme-label {
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-faded);
-}
 .toolbar__theme-buttons {
   display: flex;
   gap: 0.4rem;
 }
 .toolbar__theme-button {
-  padding: 0.4rem 0.9rem;
+  width: 36px;
+  height: 36px;
+  padding: 0;
   border-radius: 999px;
   border: 2px solid transparent;
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.toolbar__theme-button svg {
+  width: 20px;
+  height: 20px;
 }
 .toolbar__theme-button--light {
   background: linear-gradient(135deg, #fef3c7, #fde68a);
@@ -312,6 +312,14 @@ body::before {
   fill: none;
   stroke: currentColor;
   stroke-width: 1.6;
+}
+.toolbar__button--icon-only {
+  min-width: 36px;
+  padding: 0.5rem;
+}
+.toolbar__button--icon-only svg {
+  width: 20px;
+  height: 20px;
 }
 .toolbar__button:hover,
 .toolbar__button:focus-visible {
@@ -748,13 +756,17 @@ body[data-theme="light"] .workflow-stage__step {
     <div class="toolbar__left">
       <span class="toolbar__title">MAINTENANCE WORKFLOW</span>
       <div class="toolbar__theme">
-        <span class="toolbar__theme-label">테마</span>
         <div class="toolbar__theme-buttons">
           <button type="button" class="toolbar__theme-button toolbar__theme-button--light" :class="{ 'is-active': theme === 'light' }" @click="theme = 'light'" aria-label="라이트 테마">
-            라이트
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="5" fill="currentColor" />
+              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
           </button>
           <button type="button" class="toolbar__theme-button toolbar__theme-button--dark" :class="{ 'is-active': theme === 'dark' }" @click="theme = 'dark'" aria-label="다크 테마">
-            다크
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor" />
+            </svg>
           </button>
         </div>
       </div>
@@ -769,25 +781,33 @@ body[data-theme="light"] .workflow-stage__step {
         이미지 저장
       </button>
       <span class="toolbar__scale">{{ zoomPercent }}%</span>
-      <button type="button" class="toolbar__button" id="zoomFit" :aria-pressed="isFit ? 'true' : 'false'" aria-label="전체 보기" @click="fitToView">
+      <button type="button" class="toolbar__button toolbar__button--icon-only" id="zoomFit" :aria-pressed="isFit ? 'true' : 'false'" aria-label="전체 보기" @click="fitToView">
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 9V4h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-          <path d="M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-          <rect x="7" y="7" width="10" height="10" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="1.6" />
+          <circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="2" />
+          <path d="M15 15l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          <path d="M7 7h6v6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
-        전체보기
       </button>
-      <button type="button" class="toolbar__button" id="zoomOut" aria-label="축소" :disabled="isFit" @click="changeZoom(-0.1)">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" /></svg>
-        축소
+      <button type="button" class="toolbar__button toolbar__button--icon-only" id="zoomOut" aria-label="축소" :disabled="isFit" @click="changeZoom(-0.1)">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="2" />
+          <path d="M15 15l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          <path d="M7 10h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
       </button>
-      <button type="button" class="toolbar__button" id="zoomReset" aria-label="원래 크기" @click="resetZoom">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
-        기본
+      <button type="button" class="toolbar__button toolbar__button--icon-only" id="zoomReset" aria-label="원래 크기" @click="resetZoom">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="2" />
+          <path d="M15 15l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          <text x="10" y="13" text-anchor="middle" font-size="7" fill="currentColor" font-weight="bold">1:1</text>
+        </svg>
       </button>
-      <button type="button" class="toolbar__button" id="zoomIn" aria-label="확대" @click="changeZoom(0.1)">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
-        확대
+      <button type="button" class="toolbar__button toolbar__button--icon-only" id="zoomIn" aria-label="확대" @click="changeZoom(0.1)">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="2" />
+          <path d="M15 15l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          <path d="M10 7v6M7 10h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
       </button>
     </div>
   </section>
@@ -1310,7 +1330,7 @@ Vue.createApp({
            // 캔버스 크기 먼저 업데이트 (visibleStages 기준)
            const container = this.$refs.stageListWrapper;
            if (container && this.visibleStages.length > 0) {
-             const stageWidth = 356; // 단계당 346px + 10px 여유 공간
+             const stageWidth = 346; // 단계당 고정 너비
           const totalWidth = this.visibleStages.length * stageWidth;
           container.style.width = `${totalWidth}px`;
           container.style.minWidth = `${totalWidth}px`;
@@ -1428,7 +1448,7 @@ Vue.createApp({
       // 컨테이너 크기 계산 (단계 개수 x 고정 너비) - stageCards 유무와 무관하게 항상 갱신
       const stageCount = this.visibleStages.length || 0;
       if (stageCount >= 0) {
-        const stageWidth = 356; // 단계당 346px + 10px 여유 공간
+        const stageWidth = 346; // 단계당 고정 너비
         const totalWidth = stageCount * stageWidth;
 
         container.style.width = `${totalWidth}px`;
@@ -1439,7 +1459,7 @@ Vue.createApp({
       const stageCards = this.$refs.stageCards || [];
       if (!stageCards.length) {
         // 카드 DOM이 아직 준비되지 않은 경우에도 계산크기 기준으로 SVG 사이즈 설정
-        const calculatedWidth = stageCount * 356;
+        const calculatedWidth = stageCount * 346;
         this.connectorSize = {
           width: calculatedWidth,
           height: container.scrollHeight
@@ -1552,7 +1572,7 @@ Vue.createApp({
         });
         
         // 계산크기 기준으로 SVG 크기 설정 (항상 계산크기와 동일하게)
-        const calculatedWidth = stageCount * 356; // 단계당 346px + 10px 여유 공간
+        const calculatedWidth = stageCount * 346; // 단계당 고정 너비
         const containerHeight = container.scrollHeight;
 
         // 캔버스는 계산크기와 정확히 일치하도록 SVG 크기 설정

@@ -330,21 +330,21 @@ CSS_커스텀_속성:
     --workflow-scale: 1 (동적 변경)
 
   고정_크기:
-    단계_너비: 356px (카드 346px + 여유 10px)
-    캔버스_너비: visibleStages.length × 356px
+    단계_너비: 346px (단계당 고정 너비)
+    캔버스_너비: visibleStages.length × 346px
 ```
 
 ## 🎯 중요 구현 세부사항
 
 ```yaml
 단계_너비_계산:
-  고정_너비: 356px (단계 346px + 여유 10px)
-  총_캔버스_너비: visibleStages.length × 356px
+  고정_너비: 346px (단계당 고정 너비)
+  총_캔버스_너비: visibleStages.length × 346px
   명시적_설정_위치:
-    - handleSelection() line 1313: const stageWidth = 356
-    - updateConnections() line 1431: const stageWidth = 356
-    - updateConnections() line 1442: calculatedWidth = stageCount * 356
-    - updateConnections() line 1549: calculatedWidth = stageCount * 356
+    - handleSelection() line 1313: const stageWidth = 346
+    - updateConnections() line 1431: const stageWidth = 346
+    - updateConnections() line 1442: calculatedWidth = stageCount * 346
+    - updateConnections() line 1549: calculatedWidth = stageCount * 346
 
 연결선_좌표_계산:
   메서드: getBoundingClientRect()
@@ -537,11 +537,11 @@ git push --force
     --choice-height-base: clamp(42px, 5vw, 56px)
 
   고정_너비_상수_변경:
-    - handleSelection() line 1313: const stageWidth = 356
-    - updateConnections() line 1431: const stageWidth = 356
-    - updateConnections() line 1442: calculatedWidth = stageCount * 356
-    - updateConnections() line 1549: calculatedWidth = stageCount * 356
-    - 주의: 모든_위치_동시_변경_필수 (현재 356px = 단계 346px + 여유 10px)
+    - handleSelection() line 1313: const stageWidth = 346
+    - updateConnections() line 1431: const stageWidth = 346
+    - updateConnections() line 1442: calculatedWidth = stageCount * 346
+    - updateConnections() line 1549: calculatedWidth = stageCount * 346
+    - 주의: 모든_위치_동시_변경_필수 (현재 346px)
 
 테마_커스터마이징:
   다크_테마 (lines 28-81):
@@ -709,37 +709,53 @@ JavaScript_스타일:
 
   테마_전환_버튼:
     클래스: .toolbar__theme-button--light / --dark
+    디자인: 원형 아이콘 버튼 (36x36px)
+    아이콘:
+      - 라이트: 태양 아이콘 (SVG)
+      - 다크: 달 아이콘 (SVG)
     기능:
       - 클릭 시 theme 변수 변경 ("light" / "dark")
       - localStorage에 저장 (키: "maintenanceWorkflowTheme")
       - CSS 커스텀 속성 자동 전환
     시각_효과:
       - is-active 클래스: 활성 테마 강조
-      - 펄스 애니메이션: ::after 가상 요소 (lines 265-274)
+      - 펄스 애니메이션: ::after 가상 요소
       - 그라디언트 배경: linear-gradient
       - 호버: translateY(-1px), box-shadow 증가
+    개선사항:
+      - 텍스트 제거 ("라이트", "다크")
+      - "테마" 라벨 제거
+      - 더 컴팩트하고 직관적인 UI
 
   줌_컨트롤_버튼:
-    확대_버튼 (#zoomIn):
-      - 기능: scale + 0.1 (최대 1.5)
-      - 단축키: 없음 (클릭만)
-      - 아이콘: SVG 플러스 (+)
-
-    축소_버튼 (#zoomOut):
-      - 기능: scale - 0.1 (최소 0.3)
-      - 비활성화: isFit=true 시
-      - 아이콘: SVG 마이너스 (-)
-
-    기본_크기_버튼 (#zoomReset):
-      - 기능: scale = 1, isFit = false
-      - 동작: resetZoom() 메서드 호출
-      - 아이콘: SVG 십자 (리셋)
+    디자인: 아이콘 전용 버튼 (toolbar__button--icon-only)
+    크기: 36px, 아이콘 20x20px
 
     전체보기_버튼 (#zoomFit):
       - 기능: 자동 스케일 계산 (뷰포트에 맞춤)
       - aria-pressed: isFit 상태 반영
       - 동작: fitToView() 메서드 호출
-      - 아이콘: SVG 확대경
+      - 아이콘: 돋보기 + 사각형 프레임
+
+    축소_버튼 (#zoomOut):
+      - 기능: scale - 0.1 (최소 0.3)
+      - 비활성화: isFit=true 시
+      - 아이콘: 돋보기 + 마이너스 (-)
+
+    기본_크기_버튼 (#zoomReset):
+      - 기능: scale = 1, isFit = false
+      - 동작: resetZoom() 메서드 호출
+      - 아이콘: 돋보기 + "1:1" 텍스트
+
+    확대_버튼 (#zoomIn):
+      - 기능: scale + 0.1 (최대 1.5)
+      - 단축키: 없음 (클릭만)
+      - 아이콘: 돋보기 + 플러스 (+)
+
+    개선사항:
+      - 텍스트 제거 ("전체보기", "축소", "기본", "확대")
+      - 돋보기 기반 통일된 아이콘 디자인
+      - 더 직관적이고 간결한 UI
 
     줌_퍼센트_표시:
       - 클래스: .toolbar__scale
