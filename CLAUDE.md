@@ -179,13 +179,16 @@ This is a **maintenance workflow simulation application** built as a single-page
 ```yaml
 핵심_computed_속성:
   - 속성명: expectedMaxSteps
-    역할: 현재 경로의 예상 최대 단계 수 동적 계산
+    역할: 현재 경로의 예상 최대 단계 수 동적 계산 (단조 증가)
     반환값: Number (최소 5 ~ 최대 9)
     동작:
       - visibleStages가 비어있으면 → 9 (전체 단계)
       - 마지막 단계가 9(완료)면 → visibleStages.length
       - 그 외 → 마지막 선택의 nextSteps 파싱 후 남은 최대 거리 계산
+      - Math.max()로 maxExpectedSteps와 비교하여 절대 감소하지 않음 (진행도 안정성)
     호출: progressRatio에서 사용
+    개선사항:
+      - 진행도 바가 역행하는 버그 해결 (maxExpectedSteps 추적)
 
   - 속성명: calculateMaxDistanceToCompletion(stageId)
     역할: 주어진 단계에서 완료까지의 최대 거리
@@ -301,7 +304,65 @@ This is a **maintenance workflow simulation application** built as a single-page
       - scale=2 (고해상도)
       - Canvas → Blob → PNG 다운로드
       - 파일명: workflow-{timestamp}.png
+      - 디버그 로그 기록 (성공/실패)
     호출빈도: 이미지_저장_버튼_클릭_시
+
+  - 함수명: toggleDebugLayer()
+    역할: 디버그 레이어 표시/숨김
+    동작:
+      - debugLayerVisible 토글 (true ↔ false)
+      - 디버그 로그 기록 (열림/닫힘)
+    호출빈도: 디버그_버튼_클릭_시
+
+  - 함수명: logAction(message)
+    역할: 디버그 로그 기록
+    매개변수:
+      - message: 로그 메시지 문자열
+    동작:
+      - 현재 시간 포맷팅 (YYYY-MM-DD HH:MM:SS.mmm)
+      - debugLogs 배열에 추가 { time, message }
+      - 1000개 제한 (FIFO 방식으로 가장 오래된 로그 제거)
+      - $nextTick으로 로그 컨테이너 자동 스크롤
+    호출빈도: 모든_주요_액션마다
+    로그_대상:
+      - 테마 변경 (라이트/다크)
+      - 워크플로우 시작/리셋
+      - 단계 선택 (선택 항목, 다음 단계 정보)
+      - 화살선 생성/제거 (좌표, ID)
+      - 줌 변경 (스케일 값)
+      - 이미지 저장 (성공/실패)
+      - 드래그 시작/종료
+      - 디버그 레이어 토글
+      - 로그 복사/초기화
+
+  - 함수명: copyDebugLogs()
+    역할: 디버그 로그 클립보드 복사
+    동작:
+      - debugLogs 배열을 텍스트로 변환 (시간 + 메시지)
+      - navigator.clipboard.writeText() 사용
+      - 성공 시: alert + 디버그 로그 기록
+      - 실패 시: console.error + alert
+    호출빈도: 복사_버튼_클릭_시
+    async: true (비동기 함수)
+
+  - 함수명: clearDebugLogs()
+    역할: 디버그 로그 초기화
+    동작:
+      - debugLogs 배열 비우기
+      - 디버그 로그 기록 (초기화됨)
+    호출빈도: 초기화_버튼_클릭_시
+
+  - 함수명: resetFlow()
+    역할: 워크플로우 완전 초기화
+    동작:
+      - started = false
+      - maxExpectedSteps = 9 (진행도 계산 리셋)
+      - debugLayerVisible = false (디버그 레이어 자동 닫기)
+      - selections, visibleStages, lines 초기화
+      - scale = 1, isFit = false
+      - 스크롤 (0, 0)
+      - 디버그 로그 기록
+    호출빈도: 처음으로_버튼_클릭_시
 ```
 
 ## 📊 데이터 구조
@@ -345,6 +406,22 @@ line = {
   cssClassFlow: 'has-flow',       // CSS 클래스
   cssClassDraw: 'animate-draw'    // CSS 클래스
 }
+
+// 디버그 로그 구조
+debugLog = {
+  time: '2025-10-04 14:23:45.123', // 타임스탬프 (밀리초 포함)
+  message: '액션 설명'             // 로그 메시지
+}
+
+// Vue 상태 (디버그 관련)
+data() {
+  return {
+    debugLayerVisible: false,     // 디버그 레이어 표시 여부
+    debugLogs: [],                // 디버그 로그 배열 (최대 1000개)
+    maxExpectedSteps: 9,          // 진행도 계산용 (단조 증가)
+    // ... 기타 상태들
+  }
+}
 ```
 
 ## 💬 툴팁 시스템
@@ -362,12 +439,14 @@ CSS_구조:
     - 패딩: 0.45rem 0.9rem
     - 폰트: 0.8rem, 500 두께
     - 테두리: 8px 둥근 모서리
+    - z-index: 999999 (최상위)
     - 애니메이션: opacity + transform (0.2s)
 
   툴팁_화살표 (::before):
     - 위치: bottom: calc(100% + 2px)
     - 삼각형: border 6px
     - 색상: rgba(0, 0, 0, 0.9)
+    - z-index: 999999 (최상위)
 
   인터랙션:
     - 기본: opacity 0, 숨김
@@ -381,11 +460,13 @@ CSS_구조:
 
 적용_대상:
   - 테마_버튼 (라이트/다크) - 선택된 테마도 툴팁 표시
-  - 이미지_저장_버튼
+  - 처음으로_버튼 (resetFlow)
+  - 이미지_저장_버튼 (PNG 내보내기)
   - 전체보기_버튼
   - 축소_버튼
   - 기본_크기_버튼
   - 확대_버튼
+  - 디버그_버튼 (디버그 로그 토글)
 ```
 
 ## 🎨 테마 시스템
@@ -669,6 +750,39 @@ git push
       window.addEventListener('이벤트명', this.핸들러);
     beforeUnmount() 훅 (lines 1098-1103):
       window.removeEventListener('이벤트명', this.핸들러);
+
+디버깅_가이드:
+  디버그_레이어_사용:
+    활성화: 툴바의 벌레 아이콘 클릭 (확대 버튼 우측)
+    기능:
+      - 실시간_로그_확인: 모든 사용자 액션 및 시스템 이벤트 추적
+      - 로그_복사: "복사" 버튼으로 전체 로그를 클립보드에 복사 (Claude에게 공유)
+      - 로그_초기화: "초기화" 버튼으로 로그 비우기
+      - 자동_닫기: "처음으로" 버튼 클릭 시 자동으로 닫힘
+    활용:
+      - 버그_재현_과정_기록
+      - 성능_이슈_분석 (시간 측정)
+      - 사용자_행동_추적
+      - Claude에게_문제_상황_공유
+
+  로그_추가_방법:
+    기존_메서드에_추가:
+      this.logAction('액션_설명: 추가_정보');
+
+    예시:
+      // 테마 변경 시
+      this.logAction(`테마 변경: ${this.theme === 'dark' ? '다크 모드' : '라이트 모드'}`);
+
+      // 단계 선택 시
+      this.logAction(`단계 ${stage.id} 선택: ${item.label} (다음: ${item.nextSteps || '없음'})`);
+
+      // 화살선 생성 시
+      this.logAction(`화살선 생성: ${lineId} (${startX},${startY} → ${endX},${endY})`);
+
+  디버그_팁:
+    - 복잡한_버그: 로그를 복사하여 Claude에게 공유하면 빠른 분석 가능
+    - 성능_측정: 로그의 밀리초 타임스탬프로 작업 소요 시간 계산
+    - 순서_확인: 이벤트 발생 순서를 타임스탬프로 정확히 추적
 ```
 
 ## 🧪 테스트 체크리스트
@@ -704,6 +818,31 @@ git push
     - 타임스탬프_파일명
     - 고해상도_렌더링 (scale=2)
     - 여유_공간_포함
+
+  ✓ 디버그_시스템:
+    - 디버그_버튼_토글 (레이어 표시/숨김)
+    - 모든_액션_로그_기록 (테마, 선택, 줌, 드래그 등)
+    - 타임스탬프_정확성 (밀리초 포함)
+    - 로그_복사_기능 (클립보드)
+    - 로그_초기화_기능
+    - 자동_스크롤 (최신 로그로)
+    - 1000개_제한 (FIFO 제거)
+    - "처음으로" 클릭_시_자동_닫기
+    - is-active 상태_표시 (펄스 애니메이션)
+    - 닫기_버튼_동작
+
+  ✓ 진행도_바:
+    - 툴바_배경_그라디언트_표시
+    - 단계_선택_시_증가 (0~100%)
+    - 진행도_역행_방지 (단조 증가)
+    - 경로별_정확한_진행률
+    - 완료_시_100%_도달
+
+  ✓ 처음으로_버튼:
+    - 워크플로우_초기화
+    - 디버그_레이어_자동_닫기
+    - 진행도_리셋
+    - started=false 시_비활성화
 
 성능_테스트:
   ✓ 대량_단계_처리:
@@ -869,6 +1008,21 @@ JavaScript_스타일:
         - 라벨: 제거됨 (세로선만 표시)
         - 클릭: ±10px 범위 내 클릭 시 scale = 1.0
 
+  처음으로_버튼 (#resetButton):
+    기능:
+      - 워크플로우 완전 초기화 및 시작 화면 복귀
+      - resetFlow() 메서드 호출
+    디자인: 아이콘 전용 버튼 (toolbar__button--icon-only)
+    위치: 이미지 저장 버튼 왼쪽
+    비활성화: started=false 시
+    아이콘: SVG 집 모양 (home icon)
+    툴팁: "처음으로"
+    동작:
+      - 워크플로우 초기화
+      - 디버그 레이어 자동 닫기
+      - 진행도 리셋
+      - 스크롤 및 줌 리셋
+
   이미지_저장_버튼 (#saveImage):
     기능:
       - 워크플로우 캡처 → PNG 다운로드
@@ -880,43 +1034,53 @@ JavaScript_스타일:
     툴팁: "PNG로 내보내기"
     동작: saveAsImage() 메서드 호출
 
+  디버그_버튼 (#debugToggle):
+    기능:
+      - 디버그 레이어 표시/숨김 토글
+      - toggleDebugLayer() 메서드 호출
+    디자인: 아이콘 전용 버튼 (toolbar__button--icon-only)
+    위치: 확대 버튼 우측 (toolbar__actions 그룹)
+    아이콘: SVG 벌레 모양 (bug icon)
+      - 머리: 타원 (cx="12" cy="7" rx="5" ry="4")
+      - 몸통: 타원 (cx="12" cy="17" rx="7" ry="5.5")
+      - 선: 세로선 + 가로선 3개 (세그먼트 표현)
+      - 눈: 흰색 원 2개 (cx="9" cy="7", cx="15" cy="7")
+    툴팁: "디버그 로그"
+    상태_표시:
+      - is-active 클래스: debugLayerVisible=true 시
+      - 펄스 애니메이션: debugPulse (노란색 box-shadow)
+      - 키프레임:
+        - 0%, 100%: box-shadow 0 0 0 0 rgba(250, 204, 21, 0.4)
+        - 50%: box-shadow 0 0 0 6px rgba(250, 204, 21, 0)
+      - 애니메이션: 2s ease-in-out infinite
+
 진행도_바:
-  위치: .workflow-progress (lines 399-463)
-  표시_조건: v-if="started" (시작 후에만 표시)
+  위치: 툴바 배경 (.toolbar::before 가상 요소)
+  표시_조건: started=true 시 (has-progress 클래스)
+  변경사항: 별도 섹션 제거, 툴바 배경으로 통합
 
-  진행률_트랙:
-    클래스: .workflow-progress__track
-    역할: progressbar (ARIA)
-    속성:
-      - aria-valuemin: 0
-      - aria-valuemax: workflowSteps.length (9)
-      - aria-valuenow: selectedCount (현재 선택 수)
+  진행률_배경:
+    구현: .toolbar.has-progress::before
+    위치: absolute (left: 0, top: 0, bottom: 0)
+    너비: calc(var(--progress-ratio, 0) * 100%)
+    배경: linear-gradient(90deg,
+           rgba(56, 189, 248, 0.25),    # 청색 (25% 투명도)
+           rgba(244, 114, 182, 0.22),   # 분홍색 (22% 투명도)
+           rgba(250, 204, 21, 0.2))     # 노란색 (20% 투명도)
+    애니메이션: width 0.4s cubic-bezier(0.22, 1, 0.36, 1)
+    z-index: 0 (툴바 버튼들은 z-index: 1)
+    pointer-events: none
 
-  진행률_바:
-    클래스: .workflow-progress__bar
-    스타일: transform: scaleX({{ progressRatio }})
-    배경: linear-gradient (청색→보라→분홍→노랑)
-    애니메이션: cubic-bezier(0.22, 1, 0.36, 1) 0.4s
+  진행률_계산:
+    변수: --progress-ratio (0~1)
+    값: progressRatio computed 속성
+    공식: selectedCount / expectedMaxSteps
+    안정성: maxExpectedSteps로 단조 증가 보장
 
-  메타_정보:
-    선택_수_라벨:
-      - 내용: "{{ selectedCount }} 단계 선택 ({{ visibleStages.length }} 단계 표시 중)"
-      - 스타일: 0.85rem, --text-secondary 색상
-
-    디버그_정보 (debugEnabled=true):
-      - 표시: 단계박스 개수, 계산크기, 뷰포트, 캔버스, 보드, 스테이지리스트 width
-      - 위치: 진행도 바 우측
-      - 스타일: 0.78rem, --text-faded 색상
-
-  리셋_버튼:
-    클래스: .workflow-reset
-    기능: resetFlow() 메서드 호출
-    비활성화: started=false 시
-    동작:
-      - started = false
-      - selections, visibleStages, lines 초기화
-      - scale = 1, 스크롤 (0,0)
-    스타일: 999px 테두리 반경 (둥근 버튼)
+  개선사항:
+    - UI 간소화: 별도 진행도 바 섹션 제거
+    - 공간 효율: 툴바를 진행도 표시로 활용
+    - 시각적 통합: 배경 그라디언트로 자연스러운 표현
 
 워크플로우_캔버스:
   뷰포트 (.workflow-viewport):
@@ -947,9 +1111,14 @@ JavaScript_스타일:
       - 설명: 기능 안내 텍스트
       - 시작_버튼: startFlow() 호출
     스타일:
-      - 중앙_정렬: justify-items: center
+      - 레이아웃: display: grid
+      - 정렬: justify-items: center, align-content: center
+      - flex: 1, min-height: 0 (세로 공간 채움)
       - 점선_테두리: dashed border
       - 패딩: clamp(2rem, 6vw, 3rem)
+    개선사항:
+      - 세로_공간_활용: flex: 1로 뷰포트 전체 높이 활용
+      - 중앙_배치: align-content: center로 수직 중앙 정렬
 
   워크플로우_보드 (.workflow-board):
     표시_조건: v-if="started"
@@ -1036,6 +1205,92 @@ SVG_연결선_레이어:
       - 기본: opacity 0, scale(0.6)
       - is-active: opacity 1, scale(1)
     애니메이션: 0.35s ease
+
+디버그_레이어:
+  컨테이너 (.workflow-debug-layer):
+    표시_조건: v-if="debugLayerVisible"
+    위치: fixed (우측 하단)
+      - right: 1.2rem
+      - bottom: 1.2rem
+      - z-index: 999999
+    크기:
+      - width: clamp(380px, 28vw, 480px)
+      - height: clamp(280px, 32vh, 400px)
+    스타일:
+      - 배경: --bg-card (카드 배경)
+      - 테두리: 1px solid --border-color
+      - 둥근_모서리: var(--radius-lg) (24px)
+      - 그림자: 0 12px 48px rgba(0, 0, 0, 0.35)
+
+  헤더 (.workflow-debug-layer__header):
+    구성:
+      - 제목: "디버그 로그" (h3)
+      - 버튼_그룹: 복사, 초기화, 닫기
+    스타일:
+      - 패딩: 0.9rem 1.2rem
+      - 테두리_하단: 1px solid --border-color
+      - display: flex, justify-content: space-between
+
+  액션_버튼 (.workflow-debug-layer__actions):
+    버튼들:
+      복사_버튼:
+        - 텍스트: "복사"
+        - 기능: copyDebugLogs() - 클립보드 복사
+        - 클래스: .workflow-debug-layer__button
+
+      초기화_버튼:
+        - 텍스트: "초기화"
+        - 기능: clearDebugLogs() - 로그 비우기
+        - 클래스: .workflow-debug-layer__button
+
+      닫기_버튼:
+        - 아이콘: X (SVG)
+        - 기능: toggleDebugLayer() - 레이어 닫기
+        - 클래스: .workflow-debug-layer__close
+        - 크기: 28x28px
+        - 호버: 빨간색 (border-color: #ef4444)
+
+    버튼_스타일:
+      - 크기: 패딩 0.4rem 0.75rem
+      - 폰트: 0.8rem
+      - 테두리: 1px solid --toolbar-button-border
+      - 배경: --toolbar-button-bg
+      - 둥근_모서리: 6px
+      - 호버: 배경 변경, box-shadow 추가
+
+  로그_컨테이너 (.workflow-debug-layer__logs):
+    역할: 스크롤 가능한 로그 리스트
+    특성:
+      - flex: 1 (남은 공간 채움)
+      - overflow-y: auto
+      - 패딩: 0.75rem
+      - font-family: 'Consolas', monospace
+    스크롤:
+      - 자동_스크롤: $nextTick으로 최신 로그로 이동
+      - scrollTop = scrollHeight
+
+  로그_항목 (.workflow-debug-log):
+    구조:
+      - 시간: {{ log.time }} (회색)
+      - 메시지: {{ log.message }}
+    스타일:
+      - 폰트: 0.75rem, monospace
+      - 패딩: 0.3rem 0
+      - 테두리_하단: 1px solid (반투명)
+      - 시간_색상: --text-faded
+      - 메시지_색상: --text-primary
+
+  로그_형식:
+    타임스탬프: YYYY-MM-DD HH:MM:SS.mmm
+    예시:
+      - "2025-10-04 14:23:45.123 테마 변경: 다크 모드"
+      - "2025-10-04 14:24:10.456 단계 2 선택: 장애 (다음: 3)"
+      - "2025-10-04 14:24:12.789 화살선 생성: line-1-to-2 (400,150 → 800,180)"
+
+  로그_관리:
+    - 최대_로그_수: 1000개
+    - 제거_방식: FIFO (가장 오래된 로그 제거)
+    - 복사_형식: "시간 메시지" (줄바꿈으로 구분)
 
 인터랙션_특성:
   드래그_팬:
