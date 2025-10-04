@@ -1950,9 +1950,16 @@ Vue.createApp({
       this.scale = next;
       this.isFit = false;
 
-      // 전체보기 해제 시 canvas maxWidth 제거
+      // scale < 1일 때는 canvas maxWidth 설정 (스크롤바 방지), 그 외에는 제거
       const canvas = this.$refs.workflowCanvas;
-      if (canvas) canvas.style.maxWidth = '';
+      const viewport = this.$refs.workflowViewport;
+      if (canvas && viewport) {
+        if (this.scale < 1) {
+          canvas.style.maxWidth = viewport.clientWidth + 'px';
+        } else {
+          canvas.style.maxWidth = '';
+        }
+      }
 
       // 줌 중에는 흐름 애니메이션 유지, 그리기 애니메이션은 비활성화
       this.linesFlowEnabled = true;
@@ -1970,9 +1977,16 @@ Vue.createApp({
       // 슬라이더 값 변경 시 (scale은 v-model로 자동 업데이트)
       this.isFit = false;
 
-      // 전체보기 해제 시 canvas maxWidth 제거
+      // scale < 1일 때는 canvas maxWidth 설정 (스크롤바 방지), 그 외에는 제거
       const canvas = this.$refs.workflowCanvas;
-      if (canvas) canvas.style.maxWidth = '';
+      const viewport = this.$refs.workflowViewport;
+      if (canvas && viewport) {
+        if (this.scale < 1) {
+          canvas.style.maxWidth = viewport.clientWidth + 'px';
+        } else {
+          canvas.style.maxWidth = '';
+        }
+      }
 
       this.linesFlowEnabled = true;
 
@@ -2001,7 +2015,7 @@ Vue.createApp({
         this.scale = 1.0;
         this.isFit = false;
 
-        // 전체보기 해제 시 canvas maxWidth 제거
+        // scale=1이므로 canvas maxWidth 제거
         const canvas = this.$refs.workflowCanvas;
         if (canvas) canvas.style.maxWidth = '';
 
@@ -2025,9 +2039,16 @@ Vue.createApp({
         this.scale = newScale;
         this.isFit = false;
 
-        // 전체보기 해제 시 canvas maxWidth 제거
+        // scale < 1일 때는 canvas maxWidth 설정 (스크롤바 방지), 그 외에는 제거
         const canvas = this.$refs.workflowCanvas;
-        if (canvas) canvas.style.maxWidth = '';
+        const viewport = this.$refs.workflowViewport;
+        if (canvas && viewport) {
+          if (this.scale < 1) {
+            canvas.style.maxWidth = viewport.clientWidth + 'px';
+          } else {
+            canvas.style.maxWidth = '';
+          }
+        }
 
         this.linesFlowEnabled = true;
 
@@ -2044,7 +2065,7 @@ Vue.createApp({
       this.scale = 1;
       this.isFit = false;
 
-      // 전체보기 해제 시 canvas maxWidth 제거
+      // scale=1이므로 canvas maxWidth 제거
       const canvas = this.$refs.workflowCanvas;
       if (canvas) canvas.style.maxWidth = '';
 
@@ -2225,9 +2246,16 @@ Vue.createApp({
           this.scale = newScale;
           this.isFit = false;
 
-          // 전체보기 해제 시 canvas maxWidth 제거
+          // scale < 1일 때는 canvas maxWidth 설정 (스크롤바 방지), 그 외에는 제거
           const canvas = this.$refs.workflowCanvas;
-          if (canvas) canvas.style.maxWidth = '';
+          const viewport = this.$refs.workflowViewport;
+          if (canvas && viewport) {
+            if (this.scale < 1) {
+              canvas.style.maxWidth = viewport.clientWidth + 'px';
+            } else {
+              canvas.style.maxWidth = '';
+            }
+          }
 
           this.linesFlowEnabled = true;
 
