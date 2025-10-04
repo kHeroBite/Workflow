@@ -1,1 +1,1 @@
-[클로드] 🐛 gi.bat PowerShell 문법 오류 수정 - 인코딩 설정, 리다이렉션 문법, 불필요한 코드 제거 (claude-sonnet-4-5-20250929)
+[클로드] 🐛 gi.bat 완전 재작성 - PowerShell 파싱 오류 및 인코딩 문제 해결 (claude-sonnet-4-5-20250929)
