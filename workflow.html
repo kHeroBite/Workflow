@@ -184,7 +184,7 @@ body::before {
   box-shadow: 0 26px 48px rgba(6, 10, 22, 0.55);
   gap: clamp(0.8rem, 2vw, 1.4rem);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   z-index: 1000000;
 }
 .toolbar.has-progress::before {
@@ -198,6 +198,7 @@ body::before {
   transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: none;
   z-index: 0;
+  border-radius: var(--radius-lg);
 }
 .toolbar > * {
   position: relative;
@@ -1497,7 +1498,8 @@ Vue.createApp({
       const heightRatio = (viewport.clientHeight / contentHeight) * 0.96; // 4% 여유
       const target = Math.min(widthRatio, heightRatio);
 
-      return Math.max(0.1, +target.toFixed(3));
+      // 한 단계 더 축소 가능하도록 0.1 감소 (10% 추가 여유)
+      return Math.max(0.1, +(target * 0.9).toFixed(3));
     },
 
     /**

@@ -1,1 +1,1 @@
-[클로드] 🐛 버그 수정 - 디버그 건수 위치 변경, 축소 제한 버그 수정 (minScale method화) (claude-sonnet-4-5-20250929)
+[클로드] 🐛 버그 수정 2가지 - 축소 제한 완화 (10% 여유), 툴팁 표시 수정 (overflow visible) (claude-sonnet-4-5-20250929)
