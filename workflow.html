@@ -585,6 +585,77 @@ body[data-theme="light"] .workflow-start__button:focus-visible {
   border-color: var(--reset-button-hover-border);
   background: var(--reset-button-hover-bg);
 }
+.workflow-debug-layer {
+  display: grid;
+  gap: 0.7rem;
+  width: 100%;
+  max-width: 100%;
+  border-radius: var(--radius-lg);
+  background: var(--info-bg);
+  border: 1px solid var(--info-border);
+  box-shadow: 0 26px 48px rgba(6, 10, 22, 0.55);
+  padding: 1rem;
+  max-height: 300px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.workflow-debug-layer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--info-border);
+}
+.workflow-debug-layer__title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.workflow-debug-layer__clear {
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--toolbar-button-border);
+  background: var(--toolbar-button-bg);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.workflow-debug-layer__clear:hover {
+  border-color: var(--toolbar-button-hover-border);
+  background: var(--toolbar-button-hover-bg);
+}
+.workflow-debug-layer__logs {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.75rem;
+}
+.workflow-debug-log {
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  background: var(--options-bg);
+  border: 1px solid var(--options-border);
+}
+.workflow-debug-log__time {
+  color: var(--text-faded);
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-weight: 600;
+}
+.workflow-debug-log__message {
+  color: var(--text-primary);
+  word-break: break-word;
+}
 .workflow-board {
   display: flex;
   align-items: stretch;
@@ -886,8 +957,20 @@ body[data-theme="light"] .workflow-stage__step {
           </button>
         </div>
       </div>
+      <button type="button" class="toolbar__button toolbar__button--icon-only has-tooltip" id="debugToggle" aria-label="디버그 로그" data-tooltip="디버그 로그" @click="toggleDebugLayer" :class="{ 'is-active': debugLayerVisible }">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.6" />
+          <text x="12" y="16" text-anchor="middle" font-size="12" font-weight="700" fill="currentColor">D</text>
+        </svg>
+      </button>
     </div>
     <div class="toolbar__actions">
+      <button type="button" class="toolbar__button toolbar__button--icon-only has-tooltip" id="resetButton" aria-label="처음으로" data-tooltip="처음으로" @click="resetFlow" :disabled="!started">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+          <polyline points="9 22 9 12 15 12 15 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
       <button type="button" class="toolbar__button toolbar__button--icon-only has-tooltip" id="saveImage" aria-label="이미지로 저장" data-tooltip="PNG로 내보내기" @click="saveAsImage" :disabled="!started">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="1.6" />
@@ -935,10 +1018,17 @@ body[data-theme="light"] .workflow-stage__step {
       <div class="workflow-progress__track" role="progressbar" aria-label="워크플로우 단계 진행도" aria-valuemin="0" :aria-valuemax="workflowSteps.length" :aria-valuenow="selectedCount">
         <span class="workflow-progress__bar" :style="{ transform: `scaleX(${progressRatio})` }"></span>
       </div>
-      <div class="workflow-progress__meta">
-        <p class="workflow-progress__label">{{ selectedCount }} 단계 선택 ({{ visibleStages.length }} 단계 표시 중)</p>
-           <span class="workflow-debug" v-if="debugEnabled">단계박스 {{ visibleStages.length }}개 · 계산크기 {{ visibleStages.length * 346 }}px · 뷰포트 {{ canvasWidthPx }}px · 캔버스 {{ canvasSizePx }}px · 보드 {{ boardWidthPx }}px · 스테이지리스트 width={{ stageListWidthPx }}</span>
-        <button type="button" class="workflow-reset" @click="resetFlow" :disabled="!started">처음으로</button>
+    </section>
+    <section class="workflow-debug-layer" v-if="debugLayerVisible">
+      <div class="workflow-debug-layer__header">
+        <h3 class="workflow-debug-layer__title">디버그 로그</h3>
+        <button type="button" class="workflow-debug-layer__clear" @click="clearDebugLogs">초기화</button>
+      </div>
+      <div class="workflow-debug-layer__logs" ref="debugLogsContainer">
+        <div v-for="(log, index) in debugLogs" :key="index" class="workflow-debug-log">
+          <span class="workflow-debug-log__time">{{ log.time }}</span>
+          <span class="workflow-debug-log__message">{{ log.message }}</span>
+        </div>
       </div>
     </section>
     <div class="workflow-viewport" ref="workflowViewport" :class="{ 'is-dragging': dragState.active }" @mousedown="handleDragStart" @wheel="handleWheel">
@@ -1130,8 +1220,9 @@ Vue.createApp({
       linesFlowEnabled: true, // 줌 시 점선이 사라지지 않도록 흐름 애니메이션 상태 보존
       connectorSize: { width: 0, height: 0 },
       prefersReducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-      // 디버깅 토글 (임시): true면 진행도 우측에 단계/캔버스 폭 표기
-      debugEnabled: true,
+      // 디버그 레이어
+      debugLayerVisible: false,
+      debugLogs: [],
       dragState: {
         active: false,
         startX: 0,
@@ -1297,6 +1388,7 @@ Vue.createApp({
       } catch (error) {
         /* ignore */
       }
+      this.logAction(`테마 변경: ${next}`);
     },
     
     /**
@@ -1354,11 +1446,13 @@ Vue.createApp({
       this.selections = {};
       this.lines = [];
       this.connectorSize = { width: 0, height: 0 };
-      
+
+      this.logAction('워크플로우 시작');
+
       // 첫 번째 단계만 표시 (전체 항목 표시)
       const firstStage = this.workflowSteps[0];
       this.visibleStages = [{ stage: firstStage, visibleItems: firstStage.items }];
-      
+
       this.$nextTick(() => {
         this.updateConnections();
         const firstOptions = this.$refs.stageCards?.[0]?.querySelector('.workflow-option');
@@ -1372,19 +1466,21 @@ Vue.createApp({
      * 워크플로우 초기화
      */
     resetFlow() {
+      this.logAction('워크플로우 리셋 (처음으로)');
+
       this.started = false;
       this.selections = {};
       this.visibleStages = [];
       this.lines = [];
       this.connectorSize = { width: 0, height: 0 };
       this.scale = 1;
-      
+
       // DOM 업데이트 후 스크롤 위치 초기화
       this.$nextTick(() => {
         const viewport = this.$refs.workflowViewport;
         if (viewport) {
           viewport.scrollTo({ left: 0, top: 0, behavior: 'auto' });
-          
+
           const container = this.$refs.stageListWrapper;
           if (container) {
             container.style.width = '100%';
@@ -1403,10 +1499,12 @@ Vue.createApp({
       if (!currentVisibleStage) return;
       // 이전 단계로 돌아가 재선택하는지 여부 판단 (현재 보이는 마지막 단계보다 앞이면 뒤로 가는 동작)
       const isBackNavigation = visibleStageIndex < (this.visibleStages.length - 1);
-      
+
       const stageId = currentVisibleStage.stage.id;
       const itemId = item.id;
-      
+
+      this.logAction(`단계 ${stageId} 선택: ${item.label} (${itemId})${isBackNavigation ? ' [뒤로 가기]' : ''}`);
+
       // 현재 단계의 선택 저장
       this.selections[stageId] = itemId;
       
@@ -1437,6 +1535,9 @@ Vue.createApp({
       // 다음 단계 파싱 및 추가
       const nextSteps = this.parseNextSteps(item.nextSteps);
       if (nextSteps.length > 0) {
+        const nextStageIds = nextSteps.map(ns => ns.stageId).join(', ');
+        this.logAction(`다음 단계: ${nextStageIds}`);
+
         if (isBackNavigation) {
           // 이전 단계 재선택 시: 건너뛰는 단계가 있으면 현재 + 1 단계만 추가 (갑작스러운 완료 단계 방지)
           const hasSkip = nextSteps.some(ns => ns.stageId > stageId + 1);
@@ -1454,6 +1555,8 @@ Vue.createApp({
           // 정상 진행 시: 모든 다음 단계 추가 (건너뛰기 허용)
           this.addNextStages(nextSteps);
         }
+      } else {
+        this.logAction('다음 단계 없음 (완료)');
       }
       
       this.$nextTick(() => {
@@ -1666,7 +1769,9 @@ Vue.createApp({
           const controlPoint2Y = endY;
           
           const path = `M ${startX} ${startY} C ${controlPoint1X} ${controlPoint1Y}, ${controlPoint2X} ${controlPoint2Y}, ${endX} ${endY}`;
-          
+
+          this.logAction(`화살선 생성: ${lineId} | 시작(${Math.round(startX)}, ${Math.round(startY)}) → 끝(${Math.round(endX)}, ${Math.round(endY)})`);
+
           newLines.push({
             id: lineId,
             stageIndex: i,
@@ -1736,6 +1841,9 @@ Vue.createApp({
       this.isFit = false;
       // 줌 중에는 흐름 애니메이션 유지, 그리기 애니메이션은 비활성화
       this.linesFlowEnabled = true;
+
+      this.logAction(`줌 ${delta > 0 ? '확대' : '축소'}: ${Math.round(this.scale * 100)}%`);
+
       // zoom 변경 시 화살선 위치 재계산 - DOM 렌더링 완료 후 실행
       this.$nextTick(() => {
         requestAnimationFrame(() => {
@@ -1747,6 +1855,9 @@ Vue.createApp({
       // 슬라이더 값 변경 시 (scale은 v-model로 자동 업데이트)
       this.isFit = false;
       this.linesFlowEnabled = true;
+
+      this.logAction(`슬라이더 줌: ${Math.round(this.scale * 100)}%`);
+
       // 화살선 위치 재계산
       this.$nextTick(() => {
         requestAnimationFrame(() => {
@@ -1781,6 +1892,9 @@ Vue.createApp({
       this.scale = 1;
       this.isFit = false;
       this.linesFlowEnabled = true;
+
+      this.logAction('줌 리셋: 100%');
+
       // zoom 변경 시 화살선 위치 재계산 - DOM 렌더링 완료 후 실행
       this.$nextTick(() => {
         requestAnimationFrame(() => {
@@ -1818,7 +1932,9 @@ Vue.createApp({
           
           this.scale = Math.min(1.5, Math.max(0.3, +target.toFixed(3)));
           this.isFit = true;
-          
+
+          this.logAction(`전체 보기: ${Math.round(this.scale * 100)}%`);
+
           viewport.scrollTo({ left: 0, top: 0, behavior: 'auto' });
           // zoom 변경 시 화살선 위치 재계산 - DOM 렌더링 완료 후 실행
           this.$nextTick(() => {
@@ -1884,6 +2000,8 @@ Vue.createApp({
       document.body.classList.add('is-dragging');
       event.preventDefault();
       event.stopPropagation();
+
+      this.logAction('드래그 시작');
     },
     handleDragMove(event) {
       if (!this.dragState.active) {
@@ -1902,6 +2020,9 @@ Vue.createApp({
       viewport.scrollTop = this.dragState.scrollTop - deltaY;
     },
     handleDragEnd() {
+      if (this.dragState.active) {
+        this.logAction('드래그 종료');
+      }
       this.dragState.active = false;
       document.body.classList.remove('is-dragging');
     },
@@ -1974,7 +2095,9 @@ Vue.createApp({
       if (!this.started) {
         return;
       }
-      
+
+      this.logAction('이미지 저장 시작');
+
       try {
         // 워크플로우 단계 리스트 영역을 캡처 (전체 스크롤 영역 포함)
         const stageList = this.$refs.stageListWrapper;
@@ -2022,14 +2145,61 @@ Vue.createApp({
           link.download = `workflow-${timestamp}.png`;
           link.href = url;
           link.click();
-          
+
+          this.logAction(`이미지 저장 완료: workflow-${timestamp}.png`);
+
           // 메모리 정리
           URL.revokeObjectURL(url);
         }, 'image/png');
       } catch (error) {
         console.error('이미지 저장 중 오류 발생:', error);
+        this.logAction(`이미지 저장 실패: ${error.message}`);
         alert('이미지 저장에 실패했습니다.');
       }
+    },
+    /**
+     * 디버그 레이어 토글
+     */
+    toggleDebugLayer() {
+      this.debugLayerVisible = !this.debugLayerVisible;
+      this.logAction(`디버그 레이어 ${this.debugLayerVisible ? '열림' : '닫힘'}`);
+    },
+    /**
+     * 디버그 로그 추가
+     * @param {string} message - 로그 메시지
+     */
+    logAction(message) {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const milliseconds = String(now.getMilliseconds()).padStart(3, '0');
+      const time = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
+
+      this.debugLogs.push({ time, message });
+
+      // 로그가 너무 많아지면 오래된 것부터 삭제 (최대 1000개)
+      if (this.debugLogs.length > 1000) {
+        this.debugLogs.shift();
+      }
+
+      // 디버그 레이어가 열려있으면 자동 스크롤
+      this.$nextTick(() => {
+        const container = this.$refs.debugLogsContainer;
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+        }
+      });
+    },
+    /**
+     * 디버그 로그 초기화
+     */
+    clearDebugLogs() {
+      this.debugLogs = [];
+      this.logAction('로그 초기화됨');
     }
   }
 }).mount('.page');
