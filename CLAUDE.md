@@ -265,10 +265,9 @@ This is a **maintenance workflow simulation application** built as a single-page
       - 기존 화살선도 flow 속성 업데이트 → 애니메이션 유지
       - draw: false로 설정 → 그리기 애니메이션 제거, 흐름만 유지
     버그수정:
-      - 이전 단계 재선택 시 화살선 점선 사라지는 문제 해결 (3가지 수정)
-      - 1) nextStage.stage.id 체크 제거 → currentStage만 선택되어도 화살선 그리기
-      - 2) 화살선 제거 조건 수정: fromStageId >= → fromStageId > (현재→다음 화살선 유지)
-      - 3) 다음 단계 미선택 시 첫 번째 옵션으로 화살선 그리기 (endOption fallback)
+      - 이전 단계 재선택 시 화살선 점선 사라지는 문제 해결 (2가지 수정)
+      - 1) 화살선 제거 조건 수정: fromStageId >= → fromStageId > (현재→다음 화살선 유지)
+      - 2) 화살선 그리기 조건: 양쪽 모두 선택되어 있어야 함 (자동 연결 방지)
 
   - 함수명: parseNextSteps(nextStepsStr)
     역할: nextSteps 문자열 파싱
@@ -372,14 +371,13 @@ CSS_구조:
 
   인터랙션:
     - 기본: opacity 0, 숨김
-    - 호버/포커스/활성: opacity 1, 표시
-    - 트리거: :hover, :focus-visible, .is-active
+    - 호버/포커스: opacity 1, 표시
+    - 트리거: :hover, :focus-visible (is-active 제거됨)
     - 애니메이션: translateY(4px) → 0
 
   버그수정:
-    - 테마 버튼의 ::after 충돌 문제 해결
-    - 펄스 애니메이션 제거 (::after 중복 사용)
-    - 툴팁 우선순위 확보
+    - 테마 버튼의 ::after 충돌 문제 해결 - 펄스 애니메이션 제거
+    - is-active 트리거 제거 - 선택된 테마도 호버 시에만 툴팁 표시
 
 적용_대상:
   - 테마_버튼 (라이트/다크) - 선택된 테마도 툴팁 표시
