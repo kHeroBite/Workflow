@@ -1,9 +1,39 @@
 {
   "permissions": {
     "allow": [
-      "Bash(echo:*)"
+      "Edit(.commit_message.txt)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(dotnet build:*)",
+      "Bash(find:*)",
+      "Bash(rg:*)",
+      "Bash(dotnet run:*)",
+      "Bash(grep:*)",
+      "Bash(dotnet clean:*)",
+      "Bash(mv:*)",
+      "Bash(git checkout:*)",
+      "Bash(sed:*)",
+      "Bash(awk:*)",
+      "Bash(dotnet list:*)",
+      "WebSearch",
+      "WebFetch(domain:livecharts.dev)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git config:*)",
+      "Bash(ls:*)",
+      "Bash(tail:*)",
+      "Read(//c/Users/rioky/AppData/Roaming/MARS/logs/**)",
+      "Bash(wc:*)",
+      "Bash(head:*)",
+      "Bash(cat:*)",
+      "Bash(LOG_FILE=\"/c/Users/rioky/AppData/Roaming/MARS/logs/20251004.log\")"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "python .claude/statusline.py"
+  },
+  "outputStyle": "default"
 }
