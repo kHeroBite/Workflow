@@ -1942,96 +1942,122 @@ Vue.createApp({
         
         // 새로 추가할 화살선만 생성
         const newLines = [];
-        
-        // 선택된 단계들 간의 연결선 생성
-        for (let i = 0; i < this.visibleStages.length - 1; i++) {
-          const currentStage = this.visibleStages[i];
-          const nextStage = this.visibleStages[i + 1];
 
-          // 현재 단계가 선택되어 있는 경우에만 화살선 표시 (다음 단계는 아직 선택 안 되어도 표시)
-          if (!this.selections[currentStage.stage.id]) {
-            continue;
+        // 선택된 항목의 nextSteps를 기반으로 연결선 생성
+        this.visibleStages.forEach((currentStageWrapper, currentIndex) => {
+          const currentStageId = currentStageWrapper.stage.id;
+          const selectedItemId = this.selections[currentStageId];
+
+          // 현재 단계가 선택되지 않았으면 건너뜀
+          if (!selectedItemId) {
+            return;
           }
-          
-          const lineId = `line-${currentStage.stage.id}-to-${nextStage.stage.id}`;
 
-          // 이미 존재하는 화살선인지 확인
-          const existingLine = existingLines.find(line => line.id === lineId);
-          if (existingLine && !forceRecalculate) {
-            // 기존 화살선 유지하되, 애니메이션 상태 업데이트
+          // 선택된 항목 찾기
+          const selectedItem = currentStageWrapper.stage.items.find(item => item.id === selectedItemId);
+          if (!selectedItem || !selectedItem.nextSteps) {
+            return;
+          }
+
+          // nextSteps 파싱
+          const nextStepsParsed = this.parseNextSteps(selectedItem.nextSteps);
+
+          // 각 다음 단계에 대해 연결선 생성
+          nextStepsParsed.forEach(({ stageId: nextStageId }) => {
+            // visibleStages에서 다음 단계 찾기
+            const nextStageIndex = this.visibleStages.findIndex(vs => vs.stage.id === nextStageId);
+            if (nextStageIndex === -1) {
+              this.logAction(`화살선 건너뜀: ${currentStageId}-to-${nextStageId} | 이유: 다음 단계가 visibleStages에 없음`);
+              return;
+            }
+
+            const nextStageWrapper = this.visibleStages[nextStageIndex];
+            const lineId = `line-${currentStageId}-to-${nextStageId}`;
+
+            // 이미 존재하는 화살선인지 확인
+            const existingLine = existingLines.find(line => line.id === lineId);
+            if (existingLine && !forceRecalculate) {
+              // 기존 화살선 유지하되, 애니메이션 상태 업데이트
+              newLines.push({
+                ...existingLine,
+                active: true,
+                flow: this.linesFlowEnabled,
+                draw: false  // 이미 그려진 선이므로 그리기 애니메이션은 비활성화
+              });
+              return;
+            }
+
+            // 실제 DOM 카드 찾기
+            const startCard = stageCards[currentIndex];
+            const endCard = stageCards[nextStageIndex];
+            if (!startCard || !endCard) {
+              this.logAction(`화살선 건너뜀: ${lineId} | 이유: DOM 카드 없음 (시작: ${currentIndex}, 끝: ${nextStageIndex})`);
+              return;
+            }
+
+            // 선택된 옵션 버튼 찾기
+            const startOption = startCard.querySelector('.workflow-option.is-selected');
+
+            if (!startOption) {
+              this.logAction(`화살선 건너뜀: ${lineId} | 이유: 시작 단계(${currentStageId}) 미선택`);
+              return;
+            }
+
+            // 끝 단계 옵션 확인
+            let endOption = endCard.querySelector('.workflow-option.is-selected');
+
+            // 끝 단계가 선택되지 않았으면 처리
+            if (!endOption) {
+              // 다음 단계의 옵션이 1개일 때만 자동 연결
+              const nextOptions = endCard.querySelectorAll('.workflow-option');
+              if (nextOptions.length === 1) {
+                endOption = nextOptions[0];
+                this.logAction(`화살선 자동 연결: ${lineId} | 끝 단계(${nextStageId}) 옵션 1개, 자동 연결`);
+              } else {
+                // 옵션이 여러 개면 화살선 그리지 않음 (사용자 선택 대기)
+                this.logAction(`화살선 건너뜀: ${lineId} | 이유: 끝 단계(${nextStageId}) 미선택 (옵션 ${nextOptions.length}개)`);
+                return;
+              }
+            }
+
+            const scaleFactor = this.scale || 1;
+            const startRect = startOption.getBoundingClientRect();
+            const endRect = endOption.getBoundingClientRect();
+
+            // 좌표를 viewport 기준(getBoundingClientRect)에서 컨테이너 로컬 좌표(비스케일)로 보정
+            const startX = (startRect.right - containerRect.left) / scaleFactor;
+            const startY = ((startRect.top + startRect.height / 2) - containerRect.top) / scaleFactor;
+            const endX = (endRect.left - containerRect.left) / scaleFactor;
+            const endY = ((endRect.top + endRect.height / 2) - containerRect.top) / scaleFactor;
+
+            // 베지어 곡선 경로 생성
+            const controlPoint1X = startX + (endX - startX) * 0.3;
+            const controlPoint1Y = startY;
+            const controlPoint2X = startX + (endX - startX) * 0.7;
+            const controlPoint2Y = endY;
+
+            const path = `M ${startX} ${startY} C ${controlPoint1X} ${controlPoint1Y}, ${controlPoint2X} ${controlPoint2Y}, ${endX} ${endY}`;
+
+            this.logAction(`화살선 생성: ${lineId} | 시작(${Math.round(startX)}, ${Math.round(startY)}) → 끝(${Math.round(endX)}, ${Math.round(endY)})`);
+
             newLines.push({
-              ...existingLine,
+              id: lineId,
+              stageIndex: currentIndex,
+              startX,
+              startY,
+              endX,
+              endY,
+              controlPoint1X,
+              controlPoint1Y,
+              controlPoint2X,
+              controlPoint2Y,
+              path,
               active: true,
               flow: this.linesFlowEnabled,
-              draw: false  // 이미 그려진 선이므로 그리기 애니메이션은 비활성화
+              draw: forceRecalculate ? false : true
             });
-            continue;
-          }
-
-          const startCard = stageCards[i];
-          const endCard = stageCards[i + 1];
-          if (!startCard || !endCard) {
-            continue;
-          }
-          
-          // 선택된 옵션 버튼 찾기 (시작 단계만 선택되어 있으면 화살선 그리기)
-          const startOption = startCard.querySelector('.workflow-option.is-selected');
-
-          if (!startOption) {
-            this.logAction(`화살선 건너뜀: ${lineId} | 이유: 시작 단계(${currentStage.stage.id}) 미선택`);
-            continue;
-          }
-
-          // 끝 단계 옵션 - 선택되지 않아도 허용 (다음 단계 표시용)
-          let endOption = endCard.querySelector('.workflow-option.is-selected');
-
-          // 끝 단계가 선택되지 않았으면 첫 번째 옵션을 기준점으로 사용
-          if (!endOption) {
-            endOption = endCard.querySelector('.workflow-option');
-            if (!endOption) {
-              this.logAction(`화살선 건너뜀: ${lineId} | 이유: 끝 단계(${nextStage.stage.id}) 옵션 없음`);
-              continue;
-            }
-            this.logAction(`화살선 임시 기준점: ${lineId} | 끝 단계(${nextStage.stage.id}) 미선택, 첫 옵션 사용`);
-          }
-          
-          const scaleFactor = this.scale || 1;
-          const startRect = startOption.getBoundingClientRect();
-          const endRect = endOption.getBoundingClientRect();
-
-          // 좌표를 viewport 기준(getBoundingClientRect)에서 컨테이너 로컬 좌표(비스케일)로 보정
-          const startX = (startRect.right - containerRect.left) / scaleFactor;
-          const startY = ((startRect.top + startRect.height / 2) - containerRect.top) / scaleFactor;
-          const endX = (endRect.left - containerRect.left) / scaleFactor;
-          const endY = ((endRect.top + endRect.height / 2) - containerRect.top) / scaleFactor;
-          
-          // 베지어 곡선 경로 생성
-          const controlPoint1X = startX + (endX - startX) * 0.3;
-          const controlPoint1Y = startY;
-          const controlPoint2X = startX + (endX - startX) * 0.7;
-          const controlPoint2Y = endY;
-          
-          const path = `M ${startX} ${startY} C ${controlPoint1X} ${controlPoint1Y}, ${controlPoint2X} ${controlPoint2Y}, ${endX} ${endY}`;
-
-          this.logAction(`화살선 생성: ${lineId} | 시작(${Math.round(startX)}, ${Math.round(startY)}) → 끝(${Math.round(endX)}, ${Math.round(endY)})`);
-
-          newLines.push({
-            id: lineId,
-            stageIndex: i,
-            startX,
-            startY,
-            endX,
-            endY,
-            controlPoint1X,
-            controlPoint1Y,
-            controlPoint2X,
-            controlPoint2Y,
-            path,
-            active: true,
-            flow: this.linesFlowEnabled,
-            draw: forceRecalculate ? false : true
           });
-        }
+        });
 
         // 기존 화살선과 새 화살선 병합
         const allLines = [...existingLines, ...newLines];
