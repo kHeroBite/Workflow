@@ -365,13 +365,15 @@ body::before {
   z-index: 1000;
 }
 .has-tooltip:hover::after,
-.has-tooltip:focus-visible::after {
+.has-tooltip:focus-visible::after,
+.has-tooltip.is-active::after {
   opacity: 1;
   visibility: visible;
   transform: translateX(-50%) translateY(0);
 }
 .has-tooltip:hover::before,
-.has-tooltip:focus-visible::before {
+.has-tooltip:focus-visible::before,
+.has-tooltip.is-active::before {
   opacity: 1;
   visibility: visible;
 }
@@ -393,6 +395,13 @@ body[data-theme="light"] .has-tooltip::before {
   background: var(--toolbar-button-bg);
   border: 1px solid var(--toolbar-button-border);
 }
+.zoom-slider-wrapper {
+  position: relative;
+  width: 120px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+}
 .zoom-slider {
   width: 120px;
   height: 4px;
@@ -402,6 +411,30 @@ body[data-theme="light"] .has-tooltip::before {
   border-radius: 999px;
   outline: none;
   cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+.zoom-slider-marker {
+  position: absolute;
+  left: 47.37%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 12px;
+  background: var(--accent-strong);
+  pointer-events: none;
+  z-index: 0;
+}
+.zoom-slider-marker::after {
+  content: '100%';
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  pointer-events: none;
 }
 .zoom-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -893,17 +926,20 @@ body[data-theme="light"] .workflow-stage__step {
         </svg>
       </button>
       <div class="toolbar__zoom-slider">
-        <input type="range" class="zoom-slider" v-model.number="scale" min="0.1" max="2" step="0.1" @input="onSliderChange" aria-label="줌 슬라이더" />
+        <div class="zoom-slider-wrapper" @click="handleSliderMarkerClick">
+          <div class="zoom-slider-marker"></div>
+          <input type="range" class="zoom-slider" v-model.number="scale" min="0.1" max="2" step="0.1" @input="onSliderChange" aria-label="줌 슬라이더" />
+        </div>
         <span class="zoom-slider__label">{{ zoomPercent }}%</span>
       </div>
       <button type="button" class="toolbar__button toolbar__button--icon-only has-tooltip" id="zoomFit" :aria-pressed="isFit ? 'true' : 'false'" aria-label="전체 보기" data-tooltip="전체 보기" @click="fitToView">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M3 3l7 7M21 3l-7 7M3 21l7-7M21 21l-7-7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
           <rect x="8" y="8" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-          <polygon points="10,10 8,9 9,8" fill="currentColor" />
-          <polygon points="14,10 16,9 15,8" fill="currentColor" />
-          <polygon points="10,14 8,15 9,16" fill="currentColor" />
-          <polygon points="14,14 16,15 15,16" fill="currentColor" />
+          <polygon points="3,3 5,3 3,5" fill="currentColor" />
+          <polygon points="21,3 19,3 21,5" fill="currentColor" />
+          <polygon points="3,21 5,21 3,19" fill="currentColor" />
+          <polygon points="21,21 19,21 21,19" fill="currentColor" />
         </svg>
       </button>
       <button type="button" class="toolbar__button toolbar__button--icon-only has-tooltip" id="zoomOut" aria-label="축소" data-tooltip="축소" :disabled="isFit" @click="changeZoom(-0.1)">
@@ -1608,9 +1644,9 @@ Vue.createApp({
         for (let i = 0; i < this.visibleStages.length - 1; i++) {
           const currentStage = this.visibleStages[i];
           const nextStage = this.visibleStages[i + 1];
-          
-          // 현재 단계가 선택되어 있고, 다음 단계도 선택되어 있는 경우에만 화살선 표시
-          if (!this.selections[currentStage.stage.id] || !this.selections[nextStage.stage.id]) {
+
+          // 현재 단계가 선택되어 있는 경우에만 화살선 표시 (다음 단계는 아직 선택 안 되어도 표시)
+          if (!this.selections[currentStage.stage.id]) {
             continue;
           }
           
@@ -1747,6 +1783,29 @@ Vue.createApp({
           this.updateConnections(true);
         });
       });
+    },
+    handleSliderMarkerClick(event) {
+      // 마커 영역 클릭 시 100%로 설정
+      const wrapper = event.currentTarget;
+      const slider = wrapper.querySelector('.zoom-slider');
+      const rect = wrapper.getBoundingClientRect();
+      const clickX = event.clientX - rect.left;
+      const sliderWidth = 120;
+
+      // 100% 위치 (0.1~2.0 범위에서 1.0의 위치)
+      const targetPosition = (1.0 - 0.1) / (2.0 - 0.1) * sliderWidth; // 약 56.84px
+
+      // 마커 근처 (±10px) 클릭 시 100%로 설정
+      if (Math.abs(clickX - targetPosition) < 10) {
+        this.scale = 1.0;
+        this.isFit = false;
+        this.linesFlowEnabled = true;
+        this.$nextTick(() => {
+          requestAnimationFrame(() => {
+            this.updateConnections(true);
+          });
+        });
+      }
     },
     resetZoom() {
       this.scale = 1;

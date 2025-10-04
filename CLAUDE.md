@@ -210,6 +210,15 @@ This is a **maintenance workflow simulation application** built as a single-page
       - updateConnections(true) 호출
     호출위치: 슬라이더_@input_이벤트
 
+  - 함수명: handleSliderMarkerClick(event)
+    역할: 슬라이더 100% 마커 클릭 처리
+    동작:
+      - 클릭 위치 계산 (clientX - rect.left)
+      - 100% 위치: (1.0 - 0.1) / (2.0 - 0.1) * 120px = 56.84px
+      - 마커 근처 (±10px) 클릭 시 scale = 1.0 설정
+      - updateConnections(true) 호출
+    호출위치: .zoom-slider-wrapper @click 이벤트
+
   - 함수명: startFlow()
     역할: 워크플로우 초기화
     동작:
@@ -255,6 +264,9 @@ This is a **maintenance workflow simulation application** built as a single-page
     개선사항:
       - 기존 화살선도 flow 속성 업데이트 → 애니메이션 유지
       - draw: false로 설정 → 그리기 애니메이션 제거, 흐름만 유지
+    버그수정:
+      - 이전 단계 재선택 시 화살선 점선 사라지는 문제 해결
+      - nextStage.stage.id 체크 제거 → currentStage만 선택되어도 다음 단계로 화살선 그리기
 
   - 함수명: parseNextSteps(nextStepsStr)
     역할: nextSteps 문자열 파싱
@@ -358,11 +370,12 @@ CSS_구조:
 
   인터랙션:
     - 기본: opacity 0, 숨김
-    - 호버/포커스: opacity 1, 표시
+    - 호버/포커스/활성: opacity 1, 표시
+    - 트리거: :hover, :focus-visible, .is-active
     - 애니메이션: translateY(4px) → 0
 
 적용_대상:
-  - 테마_버튼 (라이트/다크)
+  - 테마_버튼 (라이트/다크) - 선택된 테마도 툴팁 표시
   - 이미지_저장_버튼
   - 전체보기_버튼
   - 축소_버튼
@@ -805,7 +818,8 @@ JavaScript_스타일:
       - 기능: 자동 스케일 계산 (뷰포트에 맞춤)
       - aria-pressed: isFit 상태 반영
       - 동작: fitToView() 메서드 호출
-      - 아이콘: 4개 화살표 + 사각형 + 화살촉 4개 (fit to screen)
+      - 아이콘: 4개 선 + 사각형 + 모서리 화살촉 4개 (바깥쪽 방향)
+      - 화살촉_위치: (3,3), (21,3), (3,21), (21,21) - 각 모서리
       - 툴팁: "전체 보기"
 
     축소_버튼 (#zoomOut):
@@ -833,15 +847,22 @@ JavaScript_스타일:
 
     줌_슬라이더:
       - 클래스: .toolbar__zoom-slider
-      - 구성: input[type="range"] + 퍼센트 라벨
+      - 구성: .zoom-slider-wrapper (마커 포함) + input[type="range"] + 퍼센트 라벨
       - 범위: 0.1 ~ 2.0 (10% ~ 200%)
       - 단계: 0.1
       - v-model: scale (양방향 바인딩)
-      - 이벤트: @input="onSliderChange"
+      - 이벤트:
+        - @input="onSliderChange" (슬라이더 값 변경)
+        - @click="handleSliderMarkerClick" (마커 클릭)
       - 스타일:
         - 슬라이더 너비: 120px
         - 썸 크기: 16x16px (원형)
         - 호버 시: 1.2배 확대 + 파란색 그림자
+      - 100%_마커:
+        - 위치: 47.37% (0.9 / 1.9 * 100%)
+        - 스타일: 2px 너비, 12px 높이, accent-strong 색상
+        - 라벨: "100%" (상단 표시)
+        - 클릭: ±10px 범위 내 클릭 시 scale = 1.0
 
   이미지_저장_버튼 (#saveImage):
     기능:
