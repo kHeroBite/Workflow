@@ -1,1 +1,1 @@
-[클로드] 🌐 gi.ps1 완전 영어 변환 - 한글 깨짐 해결 및 reflog 명령어 수정 (claude-sonnet-4-5-20250929)
+[클로드] ⌨️ gi.ps1 화살표 키 UI 재구현 - ReadKey 방식 변경 및 유니코드 제거 (claude-sonnet-4-5-20250929)
