@@ -1958,19 +1958,6 @@ Vue.createApp({
             // 유효한 라인 ID 기록
             validLineIds.add(lineId);
 
-            // 이미 존재하고 forceRecalculate가 아니면 기존 라인 재사용
-            const existingLine = !forceRecalculate && this.lines.find(line => line.id === lineId);
-            if (existingLine) {
-              // 기존 화살선 유지하되, 애니메이션 상태 업데이트
-              newLines.push({
-                ...existingLine,
-                active: true,
-                flow: this.linesFlowEnabled,
-                draw: false  // 이미 그려진 선이므로 그리기 애니메이션은 비활성화
-              });
-              return;
-            }
-
             // 실제 DOM 카드 찾기
             const startCard = stageCards[currentIndex];
             const endCard = stageCards[nextStageIndex];
@@ -2013,7 +2000,11 @@ Vue.createApp({
 
             const path = `M ${startX} ${startY} C ${controlPoint1X} ${controlPoint1Y}, ${controlPoint2X} ${controlPoint2Y}, ${endX} ${endY}`;
 
-            this.logAction(`화살선 생성: ${lineId} | 시작(${Math.round(startX)}, ${Math.round(startY)}) → 끝(${Math.round(endX)}, ${Math.round(endY)})`);
+            // 기존 라인이 있으면 애니메이션 상태만 가져옴
+            const existingLine = !forceRecalculate && this.lines.find(line => line.id === lineId);
+            const shouldAnimate = !existingLine && !forceRecalculate;
+
+            this.logAction(`화살선 ${existingLine ? '업데이트' : '생성'}: ${lineId} | 시작(${Math.round(startX)}, ${Math.round(startY)}) → 끝(${Math.round(endX)}, ${Math.round(endY)})`);
 
             newLines.push({
               id: lineId,
@@ -2029,7 +2020,7 @@ Vue.createApp({
               path,
               active: true,
               flow: this.linesFlowEnabled,
-              draw: forceRecalculate ? false : true
+              draw: shouldAnimate  // 새로 생성된 라인만 그리기 애니메이션
             });
           });
         });

@@ -1,1 +1,1 @@
-[클로드] 🐛 연결선 중복 버그 수정 - existingLines/newLines 병합 로직 개선 (claude-sonnet-4-5-20250929)
+[클로드] 🐛 연결선 좌표 업데이트 버그 수정 - 항상 좌표 재계산하도록 수정 (claude-sonnet-4-5-20250929)
