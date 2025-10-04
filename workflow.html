@@ -267,16 +267,11 @@ body::before {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 60px;
-  height: 60px;
-  margin-left: -30px;
-  margin-top: -30px;
-  background:
-    linear-gradient(0deg, transparent 48%, rgba(251, 191, 36, 0.7) 49%, rgba(251, 191, 36, 0.7) 51%, transparent 52%),
-    linear-gradient(90deg, transparent 48%, rgba(251, 191, 36, 0.7) 49%, rgba(251, 191, 36, 0.7) 51%, transparent 52%),
-    linear-gradient(45deg, transparent 48%, rgba(251, 191, 36, 0.6) 49%, rgba(251, 191, 36, 0.6) 51%, transparent 52%),
-    linear-gradient(135deg, transparent 48%, rgba(251, 191, 36, 0.6) 49%, rgba(251, 191, 36, 0.6) 51%, transparent 52%);
-  animation: lightRays 2s ease-out infinite;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.6) 0%, rgba(251, 191, 36, 0) 70%);
+  animation: radialPulse 2s ease-out infinite;
   pointer-events: none;
   z-index: -1;
 }
@@ -285,14 +280,14 @@ body::before {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 3.6px;
-  height: 3.6px;
-  margin-left: -1.8px;
-  margin-top: -1.8px;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  margin-top: -4px;
   border-radius: 50%;
-  background: #f5f5f5;
-  box-shadow: 0 0 3px rgba(245, 245, 245, 0.9), 0 0 6px rgba(245, 245, 245, 0.5);
-  animation: orbit 4s linear infinite;
+  background: radial-gradient(circle, #fbbf24, #f59e0b);
+  box-shadow: 0 0 4px rgba(251, 191, 36, 0.8);
+  animation: orbit 3s linear infinite;
   pointer-events: none;
 }
 .toolbar__theme-button--dark {
@@ -318,16 +313,11 @@ body::before {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 60px;
-  height: 60px;
-  margin-left: -30px;
-  margin-top: -30px;
-  background:
-    linear-gradient(0deg, transparent 48%, rgba(156, 163, 175, 0.7) 49%, rgba(156, 163, 175, 0.7) 51%, transparent 52%),
-    linear-gradient(90deg, transparent 48%, rgba(156, 163, 175, 0.7) 49%, rgba(156, 163, 175, 0.7) 51%, transparent 52%),
-    linear-gradient(45deg, transparent 48%, rgba(156, 163, 175, 0.6) 49%, rgba(156, 163, 175, 0.6) 51%, transparent 52%),
-    linear-gradient(135deg, transparent 48%, rgba(156, 163, 175, 0.6) 49%, rgba(156, 163, 175, 0.6) 51%, transparent 52%);
-  animation: lightRays 2s ease-out infinite;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(156, 163, 175, 0.6) 0%, rgba(156, 163, 175, 0) 70%);
+  animation: radialPulse 2s ease-out infinite;
   pointer-events: none;
   z-index: -1;
 }
@@ -336,14 +326,14 @@ body::before {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 3.6px;
-  height: 3.6px;
-  margin-left: -1.8px;
-  margin-top: -1.8px;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  margin-top: -4px;
   border-radius: 50%;
-  background: #f5f5f5;
-  box-shadow: 0 0 3px rgba(245, 245, 245, 0.9), 0 0 6px rgba(245, 245, 245, 0.5);
-  animation: orbit 4s linear infinite;
+  background: radial-gradient(circle, #d1d5db, #9ca3af);
+  box-shadow: 0 0 4px rgba(156, 163, 175, 0.8);
+  animation: orbit 3s linear infinite;
   pointer-events: none;
 }
 
@@ -408,26 +398,26 @@ body::before {
     box-shadow: 0 0 0 6px rgba(250, 204, 21, 0);
   }
 }
-@keyframes lightRays {
+@keyframes radialPulse {
   0% {
-    transform: rotate(0deg) scale(0.8);
-    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.6;
   }
   50% {
-    transform: rotate(180deg) scale(1.2);
-    opacity: 0.4;
+    transform: translate(-50%, -50%) scale(1.6);
+    opacity: 0;
   }
   100% {
-    transform: rotate(360deg) scale(0.8);
-    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
   }
 }
 @keyframes orbit {
   0% {
-    transform: rotate(0deg) translateX(24px) rotate(0deg);
+    transform: rotate(0deg) translateX(28px) rotate(0deg);
   }
   100% {
-    transform: rotate(360deg) translateX(24px) rotate(-360deg);
+    transform: rotate(360deg) translateX(28px) rotate(-360deg);
   }
 }
 
@@ -1097,13 +1087,13 @@ body[data-theme="light"] .workflow-stage__step {
       <span class="toolbar__title">MAINTENANCE WORKFLOW</span>
       <div class="toolbar__theme">
         <div class="toolbar__theme-buttons">
-          <button type="button" class="toolbar__theme-button toolbar__theme-button--light has-tooltip" :class="{ 'is-active': theme === 'light' }" @click="theme = 'light'" aria-label="라이트 테마" data-tooltip="라이트 테마">
+          <button type="button" class="toolbar__theme-button toolbar__theme-button--light" :class="{ 'is-active': theme === 'light' }" @click="theme = 'light'" aria-label="라이트 테마">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="12" cy="12" r="5" fill="currentColor" />
               <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
             </svg>
           </button>
-          <button type="button" class="toolbar__theme-button toolbar__theme-button--dark has-tooltip" :class="{ 'is-active': theme === 'dark' }" @click="theme = 'dark'" aria-label="다크 테마" data-tooltip="다크 테마">
+          <button type="button" class="toolbar__theme-button toolbar__theme-button--dark" :class="{ 'is-active': theme === 'dark' }" @click="theme = 'dark'" aria-label="다크 테마">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor" />
             </svg>
