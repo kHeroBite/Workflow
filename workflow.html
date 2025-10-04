@@ -1781,8 +1781,9 @@ Vue.createApp({
       }
 
       // 컨테이너 크기 계산 (단계 개수 x 고정 너비) - stageCards 유무와 무관하게 항상 갱신
+      // 단, 전체보기 모드(isFit=true)일 때는 크기 강제 설정하지 않음 (스크롤바 방지)
       const stageCount = this.visibleStages.length || 0;
-      if (stageCount >= 0) {
+      if (stageCount >= 0 && !this.isFit) {
         const stageWidth = 346; // 단계당 고정 너비
         const totalWidth = stageCount * stageWidth;
 
@@ -1791,6 +1792,8 @@ Vue.createApp({
         container.style.maxWidth = `${totalWidth}px`;
 
         this.logAction(`캔버스 크기 설정: ${totalWidth}px (단계 ${stageCount}개 × ${stageWidth}px)`);
+      } else if (this.isFit) {
+        this.logAction(`전체보기 모드: 캔버스 크기 강제 설정 건너뜀 (자동 크기)`);
       }
 
       const stageCards = this.$refs.stageCards || [];
