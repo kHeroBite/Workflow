@@ -1919,11 +1919,9 @@ Vue.createApp({
         // 내부 좌표를 정확히 계산하기 위해 scale로 역보정한다
         const containerRect = container.getBoundingClientRect();
         
-        // 기존 화살선 유지 (forceRecalculate가 false인 경우)
-        let existingLines = [];
-        if (!forceRecalculate && this.lines.length > 0) {
-          existingLines = [...this.lines];
-        }
+        // 기존 화살선 정보 유지 (애니메이션 상태 등)
+        // forceRecalculate=true여도 기존 라인 ID는 참조 (좌표만 재계산)
+        const existingLines = this.lines.length > 0 ? [...this.lines] : [];
         
         // 새로 추가할 화살선만 생성
         const newLines = [];
@@ -1961,22 +1959,23 @@ Vue.createApp({
 
             // 이미 존재하는 화살선인지 확인
             const existingLine = existingLines.find(line => line.id === lineId);
-            if (existingLine && !forceRecalculate) {
-              // 기존 화살선 유지하되, 애니메이션 상태 업데이트
-              newLines.push({
-                ...existingLine,
-                active: true,
-                flow: this.linesFlowEnabled,
-                draw: false  // 이미 그려진 선이므로 그리기 애니메이션은 비활성화
-              });
-              return;
-            }
 
             // 실제 DOM 카드 찾기
             const startCard = stageCards[currentIndex];
             const endCard = stageCards[nextStageIndex];
             if (!startCard || !endCard) {
-              this.logAction(`화살선 건너뜀: ${lineId} | 이유: DOM 카드 없음 (시작: ${currentIndex}, 끝: ${nextStageIndex})`);
+              // DOM이 없으면 기존 라인이라도 유지
+              if (existingLine) {
+                this.logAction(`${lineId} | DOM 없음, 기존 라인 유지`);
+                newLines.push({
+                  ...existingLine,
+                  active: true,
+                  flow: this.linesFlowEnabled,
+                  draw: false
+                });
+              } else {
+                this.logAction(`화살선 건너뜀: ${lineId} | 이유: DOM 카드 없음 (시작: ${currentIndex}, 끝: ${nextStageIndex})`);
+              }
               return;
             }
 
@@ -1984,7 +1983,18 @@ Vue.createApp({
             const startOption = startCard.querySelector('.workflow-option.is-selected');
 
             if (!startOption) {
-              this.logAction(`화살선 건너뜀: ${lineId} | 이유: 시작 단계(${currentStageId}) 미선택`);
+              // 시작 옵션 없으면 기존 라인이라도 유지
+              if (existingLine) {
+                this.logAction(`${lineId} | 시작 옵션 없음, 기존 라인 유지`);
+                newLines.push({
+                  ...existingLine,
+                  active: true,
+                  flow: this.linesFlowEnabled,
+                  draw: false
+                });
+              } else {
+                this.logAction(`화살선 건너뜀: ${lineId} | 이유: 시작 단계(${currentStageId}) 미선택`);
+              }
               return;
             }
 
@@ -1992,7 +2002,18 @@ Vue.createApp({
             const endOption = endCard.querySelector('.workflow-option.is-selected');
 
             if (!endOption) {
-              this.logAction(`화살선 건너뜀: ${lineId} | 이유: 끝 단계(${nextStageId}) 미선택`);
+              // 끝 옵션 없으면 기존 라인이라도 유지
+              if (existingLine) {
+                this.logAction(`${lineId} | 끝 옵션 없음, 기존 라인 유지`);
+                newLines.push({
+                  ...existingLine,
+                  active: true,
+                  flow: this.linesFlowEnabled,
+                  draw: false
+                });
+              } else {
+                this.logAction(`화살선 건너뜀: ${lineId} | 이유: 끝 단계(${nextStageId}) 미선택`);
+              }
               return;
             }
 
@@ -2014,7 +2035,8 @@ Vue.createApp({
 
             const path = `M ${startX} ${startY} C ${controlPoint1X} ${controlPoint1Y}, ${controlPoint2X} ${controlPoint2Y}, ${endX} ${endY}`;
 
-            this.logAction(`화살선 생성: ${lineId} | 시작(${Math.round(startX)}, ${Math.round(startY)}) → 끝(${Math.round(endX)}, ${Math.round(endY)})`);
+            const isUpdate = !!existingLine;
+            this.logAction(`화살선 ${isUpdate ? '재계산' : '생성'}: ${lineId} | 시작(${Math.round(startX)}, ${Math.round(startY)}) → 끝(${Math.round(endX)}, ${Math.round(endY)})`);
 
             newLines.push({
               id: lineId,
@@ -2030,13 +2052,13 @@ Vue.createApp({
               path,
               active: true,
               flow: this.linesFlowEnabled,
-              draw: forceRecalculate ? false : true
+              draw: isUpdate ? false : true  // 기존 라인은 애니메이션 없음
             });
           });
         });
 
-        // 기존 화살선과 새 화살선 병합
-        const allLines = [...existingLines, ...newLines];
+        // 최종 라인 배열 = newLines (기존 라인 유지 + 새 라인 포함)
+        const allLines = newLines;
         
         // SVG 크기 계산 - 모든 좌표(시작점, 끝점, 제어점)를 고려 (scale 역보정된 값 기준)
         let maxX = 0;
