@@ -1675,11 +1675,8 @@ Vue.createApp({
             // 이미 선택된 항목은 건너뜀 (무한 루프 방지)
             const isAlreadySelected = this.selections[stageId] === autoItem.id;
 
-            // nextSteps가 없으면 자동 선택 안 함 (완료 단계 방지)
-            const hasNextSteps = autoItem.nextSteps && autoItem.nextSteps.trim() !== '';
-
-            // 조건을 만족할 때만 자동 선택
-            if (!isAlreadySelected && hasNextSteps) {
+            // 조건을 만족할 때만 자동 선택 (완료 단계 포함)
+            if (!isAlreadySelected) {
               // 약간의 지연을 주어 사용자가 선택 과정을 볼 수 있게 함
               setTimeout(() => {
                 this.handleSelection(this.visibleStages.length - 1, autoItem, true);
