@@ -326,6 +326,119 @@ body::before {
   border-color: var(--toolbar-button-hover-border);
   background: var(--toolbar-button-hover-bg);
 }
+
+/* 툴팁 스타일 */
+.has-tooltip {
+  position: relative;
+}
+.has-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  padding: 0.45rem 0.9rem;
+  background: rgba(0, 0, 0, 0.9);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border-radius: 8px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+  z-index: 1000;
+}
+.has-tooltip::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  z-index: 1000;
+}
+.has-tooltip:hover::after,
+.has-tooltip:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+.has-tooltip:hover::before,
+.has-tooltip:focus-visible::before {
+  opacity: 1;
+  visibility: visible;
+}
+body[data-theme="light"] .has-tooltip::after {
+  background: rgba(31, 41, 55, 0.95);
+  color: #fff;
+}
+body[data-theme="light"] .has-tooltip::before {
+  border-top-color: rgba(31, 41, 55, 0.95);
+}
+
+/* 줌 슬라이더 */
+.toolbar__zoom-slider {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  background: var(--toolbar-button-bg);
+  border: 1px solid var(--toolbar-button-border);
+}
+.zoom-slider {
+  width: 120px;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--toolbar-button-border);
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+}
+.zoom-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.zoom-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  cursor: pointer;
+  border: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.zoom-slider:hover::-webkit-slider-thumb,
+.zoom-slider:focus::-webkit-slider-thumb {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3);
+}
+.zoom-slider:hover::-moz-range-thumb,
+.zoom-slider:focus::-moz-range-thumb {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3);
+}
+.zoom-slider__label {
+  min-width: 52px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--toolbar-scale-color);
+  font-weight: 500;
+}
 .workflow-main {
   display: flex;
   flex-direction: column;
@@ -757,13 +870,13 @@ body[data-theme="light"] .workflow-stage__step {
       <span class="toolbar__title">MAINTENANCE WORKFLOW</span>
       <div class="toolbar__theme">
         <div class="toolbar__theme-buttons">
-          <button type="button" class="toolbar__theme-button toolbar__theme-button--light" :class="{ 'is-active': theme === 'light' }" @click="theme = 'light'" aria-label="라이트 테마">
+          <button type="button" class="toolbar__theme-button toolbar__theme-button--light has-tooltip" :class="{ 'is-active': theme === 'light' }" @click="theme = 'light'" aria-label="라이트 테마" data-tooltip="라이트 테마">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="12" cy="12" r="5" fill="currentColor" />
               <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
             </svg>
           </button>
-          <button type="button" class="toolbar__theme-button toolbar__theme-button--dark" :class="{ 'is-active': theme === 'dark' }" @click="theme = 'dark'" aria-label="다크 테마">
+          <button type="button" class="toolbar__theme-button toolbar__theme-button--dark has-tooltip" :class="{ 'is-active': theme === 'dark' }" @click="theme = 'dark'" aria-label="다크 테마" data-tooltip="다크 테마">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor" />
             </svg>
@@ -772,7 +885,7 @@ body[data-theme="light"] .workflow-stage__step {
       </div>
     </div>
     <div class="toolbar__actions">
-      <button type="button" class="toolbar__button" id="saveImage" aria-label="이미지로 저장" @click="saveAsImage" :disabled="!started">
+      <button type="button" class="toolbar__button has-tooltip" id="saveImage" aria-label="이미지로 저장" data-tooltip="PNG로 내보내기" @click="saveAsImage" :disabled="!started">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="1.6" />
           <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
@@ -780,33 +893,30 @@ body[data-theme="light"] .workflow-stage__step {
         </svg>
         이미지 저장
       </button>
-      <span class="toolbar__scale">{{ zoomPercent }}%</span>
-      <button type="button" class="toolbar__button toolbar__button--icon-only" id="zoomFit" :aria-pressed="isFit ? 'true' : 'false'" aria-label="전체 보기" @click="fitToView">
+      <div class="toolbar__zoom-slider">
+        <input type="range" class="zoom-slider" v-model.number="scale" min="0.3" max="5" step="0.1" @input="onSliderChange" aria-label="줌 슬라이더" />
+        <span class="zoom-slider__label">{{ zoomPercent }}%</span>
+      </div>
+      <button type="button" class="toolbar__button toolbar__button--icon-only has-tooltip" id="zoomFit" :aria-pressed="isFit ? 'true' : 'false'" aria-label="전체 보기" data-tooltip="전체 보기" @click="fitToView">
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="2" />
-          <path d="M15 15l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-          <path d="M7 7h6v6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M3 3l7 7M21 3l-7 7M3 21l7-7M21 21l-7-7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+          <rect x="8" y="8" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
       </button>
-      <button type="button" class="toolbar__button toolbar__button--icon-only" id="zoomOut" aria-label="축소" :disabled="isFit" @click="changeZoom(-0.1)">
+      <button type="button" class="toolbar__button toolbar__button--icon-only has-tooltip" id="zoomOut" aria-label="축소" data-tooltip="축소" :disabled="isFit" @click="changeZoom(-0.1)">
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="2" />
-          <path d="M15 15l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-          <path d="M7 10h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          <path d="M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
         </svg>
       </button>
-      <button type="button" class="toolbar__button toolbar__button--icon-only" id="zoomReset" aria-label="원래 크기" @click="resetZoom">
+      <button type="button" class="toolbar__button toolbar__button--icon-only has-tooltip" id="zoomReset" aria-label="원래 크기" data-tooltip="기본 크기" @click="resetZoom">
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="2" />
-          <path d="M15 15l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-          <text x="10" y="13" text-anchor="middle" font-size="7" fill="currentColor" font-weight="bold">1:1</text>
+          <path d="M1 4v6h6M23 20v-6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
       </button>
-      <button type="button" class="toolbar__button toolbar__button--icon-only" id="zoomIn" aria-label="확대" @click="changeZoom(0.1)">
+      <button type="button" class="toolbar__button toolbar__button--icon-only has-tooltip" id="zoomIn" aria-label="확대" data-tooltip="확대" @click="changeZoom(0.1)">
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="2" />
-          <path d="M15 15l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-          <path d="M10 7v6M7 10h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
         </svg>
       </button>
     </div>
@@ -1597,7 +1707,7 @@ Vue.createApp({
       }
     },
     changeZoom(delta) {
-      const next = Math.min(1.5, Math.max(0.3, +(this.scale + delta).toFixed(2)));
+      const next = Math.min(5, Math.max(0.3, +(this.scale + delta).toFixed(2)));
       // 전체보기 상태에서는 축소 불가 (전체 보이는 비율 이하로 내려가지 않게)
       if (this.isFit && next < this.scale) {
         return;
@@ -1607,6 +1717,17 @@ Vue.createApp({
       // 줌 중에는 흐름 애니메이션 유지, 그리기 애니메이션은 비활성화
       this.linesFlowEnabled = true;
       // zoom 변경 시 화살선 위치 재계산 - DOM 렌더링 완료 후 실행
+      this.$nextTick(() => {
+        requestAnimationFrame(() => {
+          this.updateConnections(true);
+        });
+      });
+    },
+    onSliderChange() {
+      // 슬라이더 값 변경 시 (scale은 v-model로 자동 업데이트)
+      this.isFit = false;
+      this.linesFlowEnabled = true;
+      // 화살선 위치 재계산
       this.$nextTick(() => {
         requestAnimationFrame(() => {
           this.updateConnections(true);

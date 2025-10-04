@@ -20,7 +20,21 @@
       - git commit -F .commit_message.txt
       - git push --force
 
-  3_ntfy_알림:
+  3_문서_업데이트:
+    조건: 중요한_변경_발생시
+    대상: CLAUDE.md
+    변경사항:
+      - 새_파일_생성
+      - 새_함수_추가
+      - 주요_로직_변경
+      - 아키텍처_변경
+
+  4_context_관리:
+    조건: context가_20%_이하로_남은_경우
+    명령어: /compact
+    실행_시점: 문서_업데이트_완료_후
+
+  5_ntfy_알림:
     필수: 절대_필수_절대_빠뜨리지_말것
     실행_시점: 모든_작업_완료_직전
     명령어: |
@@ -34,14 +48,18 @@
       curl https://ntfy.sh -H "Content-Type: application/json; charset=utf-8" --data-binary @temp_claude_final.json
       rm temp_claude_final.json
 
-  4_문서_업데이트:
-    조건: 중요한_변경_발생시
-    대상: CLAUDE.md
-    변경사항:
-      - 새_파일_생성
-      - 새_함수_추가
-      - 주요_로직_변경
-      - 아키텍처_변경
+  6_로그_삭제:
+    명령어: rm -f temp_*.json *.log
+    설명: 임시_파일_정리
+
+  7_완료:
+    확인사항:
+      - 모든_변경사항_커밋됨
+      - 원격_저장소_푸시_완료
+      - 문서_업데이트_완료 (필요시)
+      - Context_정리_완료 (필요시)
+      - ntfy_알림_전송됨
+      - 로그_삭제_완료
 ```
 
 ## 📦 프로젝트 메타데이터
@@ -959,7 +977,9 @@ SVG_연결선_레이어:
 ✅ .commit_message.txt 수정
 ✅ git add . && git commit -F .commit_message.txt
 ✅ git push --force
-✅ ntfy 알림 전송 (절대_필수)
 ✅ CLAUDE.md 업데이트 (중요_변경시)
+✅ /compact 실행 (context 20% 이하시)
+✅ ntfy 알림 전송 (절대_필수)
+✅ 로그 삭제
 ✅ 완료
 ```
