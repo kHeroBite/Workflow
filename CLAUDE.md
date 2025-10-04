@@ -15,10 +15,11 @@
       - Edit .commit_message.txt (기존 내용 덮어쓰기)
 
   2_git_작업:
+    원격_저장소: https://github.com/kHeroBite/Workflow.git
     명령어:
       - git add .
       - git commit -F .commit_message.txt
-      - git push --force
+      - git push
 
   3_문서_업데이트:
     조건: 중요한_변경_발생시
@@ -557,7 +558,10 @@ xdg-open workflow.html      # Linux
 # Git 작업
 git add .
 git commit -F .commit_message.txt
-git push --force
+git push
+
+# 원격 저장소
+# https://github.com/kHeroBite/Workflow.git
 ```
 
 ## 🔧 일반적인 유지보수 작업

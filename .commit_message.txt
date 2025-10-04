@@ -1,1 +1,1 @@
-[클로드] 📝 ntfy 토픽 변경 - MarsAlert → Workflow (claude-sonnet-4-5-20250929)
+[클로드] 🔗 Git 원격 저장소 추가 - GitHub 연결 완료 (claude-sonnet-4-5-20250929)
