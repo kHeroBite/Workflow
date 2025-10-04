@@ -1,1 +1,1 @@
-[클로드] 🐛 버그 수정 - 전체보기 스크롤바 완전 제거 (SVG 크기도 실제 콘텐츠 크기 사용) (claude-sonnet-4-5-20250929)
+[클로드] 🐛 버그 수정 - 전체보기 스크롤바 근본 해결 (canvas maxWidth로 transform layout 제한) (claude-sonnet-4-5-20250929)
