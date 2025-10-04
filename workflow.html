@@ -1310,7 +1310,7 @@ Vue.createApp({
            // 캔버스 크기 먼저 업데이트 (visibleStages 기준)
            const container = this.$refs.stageListWrapper;
            if (container && this.visibleStages.length > 0) {
-             const stageWidth = 366; // 단계당 346px + 20px 여유 공간
+             const stageWidth = 356; // 단계당 346px + 10px 여유 공간
           const totalWidth = this.visibleStages.length * stageWidth;
           container.style.width = `${totalWidth}px`;
           container.style.minWidth = `${totalWidth}px`;
@@ -1428,7 +1428,7 @@ Vue.createApp({
       // 컨테이너 크기 계산 (단계 개수 x 고정 너비) - stageCards 유무와 무관하게 항상 갱신
       const stageCount = this.visibleStages.length || 0;
       if (stageCount >= 0) {
-        const stageWidth = 366; // 단계당 346px + 20px 여유 공간
+        const stageWidth = 356; // 단계당 346px + 10px 여유 공간
         const totalWidth = stageCount * stageWidth;
 
         container.style.width = `${totalWidth}px`;
@@ -1439,7 +1439,7 @@ Vue.createApp({
       const stageCards = this.$refs.stageCards || [];
       if (!stageCards.length) {
         // 카드 DOM이 아직 준비되지 않은 경우에도 계산크기 기준으로 SVG 사이즈 설정
-        const calculatedWidth = stageCount * 366;
+        const calculatedWidth = stageCount * 356;
         this.connectorSize = {
           width: calculatedWidth,
           height: container.scrollHeight
@@ -1471,14 +1471,20 @@ Vue.createApp({
           }
           
           const lineId = `line-${currentStage.stage.id}-to-${nextStage.stage.id}`;
-          
+
           // 이미 존재하는 화살선인지 확인
           const existingLine = existingLines.find(line => line.id === lineId);
           if (existingLine && !forceRecalculate) {
-            // 기존 화살선 유지
+            // 기존 화살선 유지하되, 애니메이션 상태 업데이트
+            newLines.push({
+              ...existingLine,
+              active: true,
+              flow: this.linesFlowEnabled,
+              draw: false  // 이미 그려진 선이므로 그리기 애니메이션은 비활성화
+            });
             continue;
           }
-          
+
           const startCard = stageCards[i];
           const endCard = stageCards[i + 1];
           if (!startCard || !endCard) {
@@ -1546,7 +1552,7 @@ Vue.createApp({
         });
         
         // 계산크기 기준으로 SVG 크기 설정 (항상 계산크기와 동일하게)
-        const calculatedWidth = stageCount * 366; // 단계당 346px + 20px 여유 공간
+        const calculatedWidth = stageCount * 356; // 단계당 346px + 10px 여유 공간
         const containerHeight = container.scrollHeight;
 
         // 캔버스는 계산크기와 정확히 일치하도록 SVG 크기 설정

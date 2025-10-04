@@ -211,15 +211,19 @@ This is a **maintenance workflow simulation application** built as a single-page
   - 함수명: updateConnections(forceRecalculate)
     역할: SVG 연결선 경로 재계산
     매개변수:
-      - forceRecalculate: true면 전체 재계산, false면 새 화살선만 추가
+      - forceRecalculate: true면 전체 재계산, false면 기존 화살선 유지
     동작:
-      - stageListWrapper 크기 설정 (stageCount × 346px)
+      - stageListWrapper 크기 설정 (stageCount × 356px)
       - getBoundingClientRect()로 좌표 계산
       - scaleFactor로 역보정 (비스케일 좌표)
+      - 기존 화살선 유지 시 애니메이션 상태 업데이트 (flow: true, draw: false)
       - Bezier 곡선 경로 생성 (M, C 명령)
       - SVG 크기 계산 (connectorSize)
       - lines 배열 업데이트
     호출빈도: 선택_시, 줌_변경_시, 리사이즈_시
+    개선사항:
+      - 기존 화살선도 flow 속성 업데이트 → 애니메이션 유지
+      - draw: false로 설정 → 그리기 애니메이션 제거, 흐름만 유지
 
   - 함수명: parseNextSteps(nextStepsStr)
     역할: nextSteps 문자열 파싱
@@ -326,21 +330,21 @@ CSS_커스텀_속성:
     --workflow-scale: 1 (동적 변경)
 
   고정_크기:
-    단계_너비: 366px (카드 346px + 여유 20px)
-    캔버스_너비: visibleStages.length × 366px
+    단계_너비: 356px (카드 346px + 여유 10px)
+    캔버스_너비: visibleStages.length × 356px
 ```
 
 ## 🎯 중요 구현 세부사항
 
 ```yaml
 단계_너비_계산:
-  고정_너비: 366px (단계 346px + 여유 20px)
-  총_캔버스_너비: visibleStages.length × 366px
+  고정_너비: 356px (단계 346px + 여유 10px)
+  총_캔버스_너비: visibleStages.length × 356px
   명시적_설정_위치:
-    - handleSelection() line 1241: const stageWidth = 366
-    - updateConnections() line 1359: const stageWidth = 366
-    - updateConnections() line 1370: calculatedWidth = stageCount * 366
-    - updateConnections() line 1477: calculatedWidth = stageCount * 366
+    - handleSelection() line 1313: const stageWidth = 356
+    - updateConnections() line 1431: const stageWidth = 356
+    - updateConnections() line 1442: calculatedWidth = stageCount * 356
+    - updateConnections() line 1549: calculatedWidth = stageCount * 356
 
 연결선_좌표_계산:
   메서드: getBoundingClientRect()
@@ -533,11 +537,11 @@ git push --force
     --choice-height-base: clamp(42px, 5vw, 56px)
 
   고정_너비_상수_변경:
-    - handleSelection() line 1241: const stageWidth = 366
-    - updateConnections() line 1359: const stageWidth = 366
-    - updateConnections() line 1370: calculatedWidth = stageCount * 366
-    - updateConnections() line 1477: calculatedWidth = stageCount * 366
-    - 주의: 모든_위치_동시_변경_필수 (현재 366px = 단계 346px + 여유 20px)
+    - handleSelection() line 1313: const stageWidth = 356
+    - updateConnections() line 1431: const stageWidth = 356
+    - updateConnections() line 1442: calculatedWidth = stageCount * 356
+    - updateConnections() line 1549: calculatedWidth = stageCount * 356
+    - 주의: 모든_위치_동시_변경_필수 (현재 356px = 단계 346px + 여유 10px)
 
 테마_커스터마이징:
   다크_테마 (lines 28-81):
