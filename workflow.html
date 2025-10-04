@@ -1054,30 +1054,6 @@ Vue.createApp({
       return this.selectedCount + (this.workflowSteps.length - lastSelectedStageId);
     },
     /**
-     * 주어진 단계 ID에서 완료(9단계)까지의 최대 거리 계산
-     */
-    calculateMaxDistanceToCompletion(stageId) {
-      // 이미 9단계(완료)면 1 (자기 자신만)
-      if (stageId === 9) {
-        return 1;
-      }
-
-      // 단계별 최대 거리 매핑 (미리 계산된 값)
-      const maxDistanceMap = {
-        1: 5, // 1→2→4→5.1→9 (최소 5단계)
-        2: 4, // 2→4→5.1→9 (최소 4단계)
-        3: 4, // 3→4→5.1→9 (최소 4단계)
-        4: 3, // 4→5.1→9 (최소 3단계)
-        5: 5, // 5→6→7→8→9 (최대 5단계)
-        6: 4, // 6→7→8→9 (최대 4단계)
-        7: 3, // 7→8→9 (최대 3단계)
-        8: 2, // 8→9 (최대 2단계)
-        9: 1  // 9 (완료)
-      };
-
-      return maxDistanceMap[stageId] || 1;
-    },
-    /**
      * 전체 단계 대비 진행률 (0~1) - 동적 최대 단계 수 기준
      */
     progressRatio() {
@@ -1190,7 +1166,34 @@ Vue.createApp({
     padStep(stageId) {
       return String(stageId).padStart(2, '0');
     },
-    
+
+    /**
+     * 주어진 단계 ID에서 완료(9단계)까지의 최대 거리 계산
+     * @param {number} stageId - 단계 ID
+     * @returns {number} 완료까지의 최대 거리
+     */
+    calculateMaxDistanceToCompletion(stageId) {
+      // 이미 9단계(완료)면 1 (자기 자신만)
+      if (stageId === 9) {
+        return 1;
+      }
+
+      // 단계별 최대 거리 매핑 (미리 계산된 값)
+      const maxDistanceMap = {
+        1: 5, // 1→2→4→5.1→9 (최소 5단계)
+        2: 4, // 2→4→5.1→9 (최소 4단계)
+        3: 4, // 3→4→5.1→9 (최소 4단계)
+        4: 3, // 4→5.1→9 (최소 3단계)
+        5: 5, // 5→6→7→8→9 (최대 5단계)
+        6: 4, // 6→7→8→9 (최대 4단계)
+        7: 3, // 7→8→9 (최대 3단계)
+        8: 2, // 8→9 (최대 2단계)
+        9: 1  // 9 (완료)
+      };
+
+      return maxDistanceMap[stageId] || 1;
+    },
+
     /**
      * 선택된 항목의 라벨 반환
      * @param {object} visibleStage - { stage, visibleItems }
