@@ -39,7 +39,7 @@
     실행_시점: 모든_작업_완료_직전
     명령어: |
       echo '{
-        "topic": "MarsAlert",
+        "topic": "Workflow",
         "title": "클로드코드 작업 완료",
         "message": "작업 요약: [구체적인_작업_내용]\n\n커밋 내역:\n- [커밋들]",
         "priority": 4,
@@ -201,6 +201,14 @@ This is a **maintenance workflow simulation application** built as a single-page
     효과: 경로별 정확한 진행률 표시 (완료 시 항상 100%)
 
 핵심_함수:
+  - 함수명: onSliderChange()
+    역할: 줌 슬라이더 값 변경 처리
+    동작:
+      - isFit = false 설정
+      - linesFlowEnabled = true
+      - updateConnections(true) 호출
+    호출위치: 슬라이더_@input_이벤트
+
   - 함수명: startFlow()
     역할: 워크플로우 초기화
     동작:
@@ -319,6 +327,42 @@ line = {
   cssClassFlow: 'has-flow',       // CSS 클래스
   cssClassDraw: 'animate-draw'    // CSS 클래스
 }
+```
+
+## 💬 툴팁 시스템
+
+```yaml
+구현_방식:
+  클래스: has-tooltip
+  속성: data-tooltip="툴팁_텍스트"
+
+CSS_구조:
+  툴팁_박스 (::after):
+    - content: attr(data-tooltip)
+    - 위치: bottom: calc(100% + 8px)
+    - 배경: rgba(0, 0, 0, 0.9)
+    - 패딩: 0.45rem 0.9rem
+    - 폰트: 0.8rem, 500 두께
+    - 테두리: 8px 둥근 모서리
+    - 애니메이션: opacity + transform (0.2s)
+
+  툴팁_화살표 (::before):
+    - 위치: bottom: calc(100% + 2px)
+    - 삼각형: border 6px
+    - 색상: rgba(0, 0, 0, 0.9)
+
+  인터랙션:
+    - 기본: opacity 0, 숨김
+    - 호버/포커스: opacity 1, 표시
+    - 애니메이션: translateY(4px) → 0
+
+적용_대상:
+  - 테마_버튼 (라이트/다크)
+  - 이미지_저장_버튼
+  - 전체보기_버튼
+  - 축소_버튼
+  - 기본_크기_버튼
+  - 확대_버튼
 ```
 
 ## 🎨 테마 시스템
@@ -753,33 +797,43 @@ JavaScript_스타일:
       - 기능: 자동 스케일 계산 (뷰포트에 맞춤)
       - aria-pressed: isFit 상태 반영
       - 동작: fitToView() 메서드 호출
-      - 아이콘: 돋보기 + 사각형 프레임
+      - 아이콘: 4개 화살표 + 사각형 (fit to screen)
+      - 툴팁: "전체 보기"
 
     축소_버튼 (#zoomOut):
       - 기능: scale - 0.1 (최소 0.3)
       - 비활성화: isFit=true 시
-      - 아이콘: 돋보기 + 마이너스 (-)
+      - 아이콘: 마이너스 (-) 단순 아이콘
+      - 툴팁: "축소"
 
     기본_크기_버튼 (#zoomReset):
       - 기능: scale = 1, isFit = false
       - 동작: resetZoom() 메서드 호출
-      - 아이콘: 돋보기 + "1:1" 텍스트
+      - 아이콘: 리셋 화살표
+      - 툴팁: "기본 크기"
 
     확대_버튼 (#zoomIn):
-      - 기능: scale + 0.1 (최대 1.5)
+      - 기능: scale + 0.1 (최대 5.0)
       - 단축키: 없음 (클릭만)
-      - 아이콘: 돋보기 + 플러스 (+)
+      - 아이콘: 플러스 (+) 단순 아이콘
+      - 툴팁: "확대"
 
     개선사항:
-      - 텍스트 제거 ("전체보기", "축소", "기본", "확대")
-      - 돋보기 기반 통일된 아이콘 디자인
-      - 더 직관적이고 간결한 UI
+      - 돋보기 제거, 직관적인 아이콘으로 변경
+      - 툴팁 추가 (has-tooltip 클래스, data-tooltip 속성)
+      - 최대 줌 500%로 확장 (1.5 → 5.0)
 
-    줌_퍼센트_표시:
-      - 클래스: .toolbar__scale
-      - 내용: {{ zoomPercent }}% (계산된 속성)
-      - 스타일: 최소 72px 너비, 중앙 정렬
-      - 읽기_전용: 버튼 아님
+    줌_슬라이더:
+      - 클래스: .toolbar__zoom-slider
+      - 구성: input[type="range"] + 퍼센트 라벨
+      - 범위: 0.3 ~ 5.0 (30% ~ 500%)
+      - 단계: 0.1
+      - v-model: scale (양방향 바인딩)
+      - 이벤트: @input="onSliderChange"
+      - 스타일:
+        - 슬라이더 너비: 120px
+        - 썸 크기: 16x16px (원형)
+        - 호버 시: 1.2배 확대 + 파란색 그림자
 
   이미지_저장_버튼 (#saveImage):
     기능:

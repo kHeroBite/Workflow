@@ -1,1 +1,1 @@
-[클로드] ✨ UI 대폭 개선 - 직관적 아이콘, 툴팁, 줌 슬라이더 (claude-sonnet-4-5-20250929)
+[클로드] 📝 ntfy 토픽 변경 - MarsAlert → Workflow (claude-sonnet-4-5-20250929)
