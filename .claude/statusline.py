@@ -173,13 +173,16 @@ if input_tokens is None and output_tokens is None:
             except:
                 pass
 
-# 토큰 문자열 생성
+# 토큰 문자열 생성 (사용자 관점: in=받은것, out=보낸것)
 total_tokens = (input_tokens or 0) + (output_tokens or 0) if (input_tokens is not None or output_tokens is not None) else None
 
 if total_tokens is not None and total_tokens > 0:
     total_s = fmt_tokens(total_tokens)
-    in_s = fmt_tokens(input_tokens) if input_tokens else "0"
-    out_s = fmt_tokens(output_tokens) if output_tokens else "0"
+    # 사용자 관점으로 swap:
+    # in = AI로부터 받은 것 (API의 output_tokens)
+    # out = AI에게 보낸 것 (API의 input_tokens)
+    in_s = fmt_tokens(output_tokens) if output_tokens else "0"
+    out_s = fmt_tokens(input_tokens) if input_tokens else "0"
     # 회색으로 표시
     token_str = f"\033[90m{total_s} (in:{in_s}, out:{out_s})\033[0m"
 else:
@@ -200,7 +203,8 @@ if context_tokens is not None and context_tokens > 0:
         context_str = f"\033[96m{free_pct:.1f}%\033[0m"  # 프로젝트명과 동일한 시안 색상
 
 # --- 출력 ---
-time_str = fmt_mmss(duration_ms)
+# 시간 문자열 (회색)
+time_str = f"\033[90m{fmt_mmss(duration_ms)}\033[0m"
 # 소스 변화량 문자열 (회색)
 lines_str = f"\033[90m+{lines_add}/-{lines_del}\033[0m"
 

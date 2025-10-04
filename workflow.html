@@ -1788,7 +1788,7 @@ Vue.createApp({
         
         this.$nextTick(() => {
           // 항목 선택 시 항상 기본 크기로 리셋 (이전 단계든 다음 단계든 상관없이)
-          this.resetZoom();
+          // this.resetZoom();
 
           // 항목 선택 시 항상 우측 끝으로 스크롤
           this.scrollToRight();
@@ -1923,17 +1923,21 @@ Vue.createApp({
         // 확대/축소 시 getBoundingClientRect는 transform 비율을 반영하므로,
         // 내부 좌표를 정확히 계산하기 위해 scale로 역보정한다
         const containerRect = container.getBoundingClientRect();
-        
-        // 기존 화살선 유지 (forceRecalculate가 false인 경우)
-        let existingLines = [];
-        if (!forceRecalculate && this.lines.length > 0) {
-          existingLines = [...this.lines];
-        }
-        
-        // 새로 추가할 화살선만 생성
-        const newLines = [];
 
-        // 선택된 항목의 nextSteps를 기반으로 연결선 생성
+        // Map 기반 라인 관리: 기존 라인을 절대 버리지 않고 보존
+        const lineMap = new Map();
+
+        // 1단계: 모든 기존 라인을 Map에 저장 (forceRecalculate 무관)
+        this.lines.forEach(line => {
+          lineMap.set(line.id, {
+            ...line,
+            flow: this.linesFlowEnabled  // 애니메이션 상태만 업데이트
+          });
+        });
+
+        this.logAction(`[MAP] 기존 라인 ${lineMap.size}개를 Map에 보존`);
+
+        // 2단계: 선택된 항목의 nextSteps를 기반으로 계산 가능한 라인만 업데이트
         this.visibleStages.forEach((currentStageWrapper, currentIndex) => {
           const currentStageId = currentStageWrapper.stage.id;
           const selectedItemId = this.selections[currentStageId];
@@ -1952,53 +1956,43 @@ Vue.createApp({
           // nextSteps 파싱
           const nextStepsParsed = this.parseNextSteps(selectedItem.nextSteps);
 
-          // 각 다음 단계에 대해 연결선 생성
+          // 각 다음 단계에 대해 연결선 업데이트 시도
           nextStepsParsed.forEach(({ stageId: nextStageId }) => {
             // visibleStages에서 다음 단계 찾기
             const nextStageIndex = this.visibleStages.findIndex(vs => vs.stage.id === nextStageId);
             if (nextStageIndex === -1) {
-              this.logAction(`화살선 건너뜀: ${currentStageId}-to-${nextStageId} | 이유: 다음 단계가 visibleStages에 없음`);
-              return;
+              return;  // 기존 라인은 Map에 유지됨
             }
 
-            const nextStageWrapper = this.visibleStages[nextStageIndex];
             const lineId = `line-${currentStageId}-to-${nextStageId}`;
-
-            // 이미 존재하는 화살선인지 확인
-            const existingLine = existingLines.find(line => line.id === lineId);
-            if (existingLine && !forceRecalculate) {
-              // 기존 화살선 유지하되, 애니메이션 상태 업데이트
-              newLines.push({
-                ...existingLine,
-                active: true,
-                flow: this.linesFlowEnabled,
-                draw: false  // 이미 그려진 선이므로 그리기 애니메이션은 비활성화
-              });
-              return;
-            }
+            const existingLine = lineMap.get(lineId);
 
             // 실제 DOM 카드 찾기
             const startCard = stageCards[currentIndex];
             const endCard = stageCards[nextStageIndex];
             if (!startCard || !endCard) {
-              this.logAction(`화살선 건너뜀: ${lineId} | 이유: DOM 카드 없음 (시작: ${currentIndex}, 끝: ${nextStageIndex})`);
-              return;
+              if (existingLine) {
+                this.logAction(`[MAP] ${lineId} | DOM 없음, 기존 라인 유지`);
+              }
+              return;  // 기존 라인은 Map에 유지됨
             }
 
             // 선택된 옵션 버튼 찾기
             const startOption = startCard.querySelector('.workflow-option.is-selected');
-
             if (!startOption) {
-              this.logAction(`화살선 건너뜀: ${lineId} | 이유: 시작 단계(${currentStageId}) 미선택`);
-              return;
+              if (existingLine) {
+                this.logAction(`[MAP] ${lineId} | 시작 옵션 없음, 기존 라인 유지`);
+              }
+              return;  // 기존 라인은 Map에 유지됨
             }
 
             // 끝 단계 옵션 확인 (반드시 선택되어 있어야 함)
             const endOption = endCard.querySelector('.workflow-option.is-selected');
-
             if (!endOption) {
-              this.logAction(`화살선 건너뜀: ${lineId} | 이유: 끝 단계(${nextStageId}) 미선택`);
-              return;
+              if (existingLine) {
+                this.logAction(`[MAP] ${lineId} | 끝 옵션 없음, 기존 라인 유지`);
+              }
+              return;  // 기존 라인은 Map에 유지됨
             }
 
             const scaleFactor = this.scale || 1;
@@ -2019,9 +2013,11 @@ Vue.createApp({
 
             const path = `M ${startX} ${startY} C ${controlPoint1X} ${controlPoint1Y}, ${controlPoint2X} ${controlPoint2Y}, ${endX} ${endY}`;
 
-            this.logAction(`화살선 생성: ${lineId} | 시작(${Math.round(startX)}, ${Math.round(startY)}) → 끝(${Math.round(endX)}, ${Math.round(endY)})`);
+            const isUpdate = !!existingLine;
+            this.logAction(`[MAP] ${lineId} | 좌표 ${isUpdate ? '재계산' : '생성'}: (${Math.round(startX)},${Math.round(startY)}) → (${Math.round(endX)},${Math.round(endY)})`);
 
-            newLines.push({
+            // Map에 라인 업데이트 (기존이든 신규든)
+            lineMap.set(lineId, {
               id: lineId,
               stageIndex: currentIndex,
               startX,
@@ -2035,13 +2031,14 @@ Vue.createApp({
               path,
               active: true,
               flow: this.linesFlowEnabled,
-              draw: forceRecalculate ? false : true
+              draw: isUpdate ? false : true  // 기존 라인은 그리기 애니메이션 없음
             });
           });
         });
 
-        // 기존 화살선과 새 화살선 병합
-        const allLines = [...existingLines, ...newLines];
+        // 3단계: Map을 배열로 변환
+        const allLines = Array.from(lineMap.values());
+        this.logAction(`[MAP] 최종 라인 ${allLines.length}개 (보존 + 업데이트)`);
         
         // SVG 크기 계산 - 모든 좌표(시작점, 끝점, 제어점)를 고려 (scale 역보정된 값 기준)
         let maxX = 0;
