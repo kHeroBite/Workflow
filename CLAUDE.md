@@ -265,8 +265,10 @@ This is a **maintenance workflow simulation application** built as a single-page
       - 기존 화살선도 flow 속성 업데이트 → 애니메이션 유지
       - draw: false로 설정 → 그리기 애니메이션 제거, 흐름만 유지
     버그수정:
-      - 이전 단계 재선택 시 화살선 점선 사라지는 문제 해결
-      - nextStage.stage.id 체크 제거 → currentStage만 선택되어도 다음 단계로 화살선 그리기
+      - 이전 단계 재선택 시 화살선 점선 사라지는 문제 해결 (3가지 수정)
+      - 1) nextStage.stage.id 체크 제거 → currentStage만 선택되어도 화살선 그리기
+      - 2) 화살선 제거 조건 수정: fromStageId >= → fromStageId > (현재→다음 화살선 유지)
+      - 3) 다음 단계 미선택 시 첫 번째 옵션으로 화살선 그리기 (endOption fallback)
 
   - 함수명: parseNextSteps(nextStepsStr)
     역할: nextSteps 문자열 파싱
@@ -373,6 +375,11 @@ CSS_구조:
     - 호버/포커스/활성: opacity 1, 표시
     - 트리거: :hover, :focus-visible, .is-active
     - 애니메이션: translateY(4px) → 0
+
+  버그수정:
+    - 테마 버튼의 ::after 충돌 문제 해결
+    - 펄스 애니메이션 제거 (::after 중복 사용)
+    - 툴팁 우선순위 확보
 
 적용_대상:
   - 테마_버튼 (라이트/다크) - 선택된 테마도 툴팁 표시
@@ -861,7 +868,7 @@ JavaScript_스타일:
       - 100%_마커:
         - 위치: 47.37% (0.9 / 1.9 * 100%)
         - 스타일: 2px 너비, 12px 높이, accent-strong 색상
-        - 라벨: "100%" (상단 표시)
+        - 라벨: 제거됨 (세로선만 표시)
         - 클릭: ±10px 범위 내 클릭 시 scale = 1.0
 
   이미지_저장_버튼 (#saveImage):
