@@ -180,8 +180,8 @@ if total_tokens is not None and total_tokens > 0:
     total_s = fmt_tokens(total_tokens)
     in_s = fmt_tokens(input_tokens) if input_tokens else "0"
     out_s = fmt_tokens(output_tokens) if output_tokens else "0"
-    # 기본 색상으로 표시
-    token_str = f"{total_s} (in:{in_s}, out:{out_s})"
+    # 회색으로 표시
+    token_str = f"\033[90m{total_s} (in:{in_s}, out:{out_s})\033[0m"
 else:
     token_str = "\033[90mn/a\033[0m"
 
@@ -197,16 +197,16 @@ if context_tokens is not None and context_tokens > 0:
     if free_pct <= 20:
         context_str = f"\033[38;2;255;105;180m{free_pct:.1f}%\033[0m"  # 아주 밝은 핫핑크 RGB(255, 105, 180)
     else:
-        context_str = f"{free_pct:.1f}%"
+        context_str = f"\033[96m{free_pct:.1f}%\033[0m"  # 프로젝트명과 동일한 시안 색상
 
 # --- 출력 ---
 time_str = fmt_mmss(duration_ms)
-# 소스 변화량 문자열 (기본 색상)
-lines_str = f"+{lines_add}/-{lines_del}"
+# 소스 변화량 문자열 (회색)
+lines_str = f"\033[90m+{lines_add}/-{lines_del}\033[0m"
 
 # 세션 정보가 있을 때만 표시
 session_part = f" | 🔋 {session_str}" if session_str is not None else ""
 
 print(
-    f"📁 {project_name} | 🤖 {model} | ⏱️ {time_str}{session_part} | 📦 {context_str} | 🔢 {token_str} | 📝 {lines_str}"
+    f"📁 \033[96m{project_name}\033[0m | 🤖 {model} | ⏱️ {time_str}{session_part} | 📦 {context_str} | 🔢 {token_str} | 📝 {lines_str}"
 )

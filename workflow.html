@@ -225,7 +225,7 @@ body::before {
 }
 .toolbar__theme-buttons {
   display: flex;
-  gap: 0.4rem;
+  gap: 1rem;
 }
 .toolbar__theme-button {
   width: 36px;
@@ -262,6 +262,19 @@ body::before {
   transform: translateY(-2px);
   font-weight: 700;
 }
+.toolbar__theme-button--light.is-active::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.6) 0%, rgba(251, 191, 36, 0) 70%);
+  animation: radialPulse 2s ease-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
 .toolbar__theme-button--dark {
   background: linear-gradient(135deg, #374151, #1f2937);
   color: #f3f4f6;
@@ -279,6 +292,19 @@ body::before {
   box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.5), 0 6px 16px rgba(31, 41, 55, 0.8);
   transform: translateY(-2px);
   font-weight: 700;
+}
+.toolbar__theme-button--dark.is-active::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(156, 163, 175, 0.6) 0%, rgba(156, 163, 175, 0) 70%);
+  animation: radialPulse 2s ease-out infinite;
+  pointer-events: none;
+  z-index: -1;
 }
 
 .toolbar__actions {
@@ -340,6 +366,20 @@ body::before {
   }
   50% {
     box-shadow: 0 0 0 6px rgba(250, 204, 21, 0);
+  }
+}
+@keyframes radialPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.4);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
   }
 }
 
@@ -1071,15 +1111,31 @@ body[data-theme="light"] .workflow-stage__step {
         </svg>
       </button>
       <button type="button" class="toolbar__button toolbar__button--icon-only has-tooltip" id="debugToggle" aria-label="디버그 로그" data-tooltip="디버그 로그" @click="toggleDebugLayer" :class="{ 'is-active': debugLayerVisible }">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <ellipse cx="12" cy="7" rx="5" ry="4" fill="currentColor" />
-          <ellipse cx="12" cy="17" rx="7" ry="5.5" fill="currentColor" />
-          <line x1="12" y1="11" x2="12" y2="22" stroke="currentColor" stroke-width="1.2" />
-          <line x1="6" y1="13" x2="18" y2="13" stroke="currentColor" stroke-width="1.2" />
-          <line x1="6" y1="16" x2="18" y2="16" stroke="currentColor" stroke-width="1.2" />
-          <line x1="6" y1="19" x2="18" y2="19" stroke="currentColor" stroke-width="1.2" />
-          <circle cx="9" cy="7" r="1" fill="#fff" />
-          <circle cx="15" cy="7" r="1" fill="#fff" />
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor">
+          <!-- 머리 -->
+          <circle cx="12" cy="6.5" r="2.5" fill="currentColor" />
+          <!-- 안테나 -->
+          <line x1="10.5" y1="5" x2="9" y2="3" stroke-width="1.5" stroke-linecap="round" />
+          <line x1="13.5" y1="5" x2="15" y2="3" stroke-width="1.5" stroke-linecap="round" />
+          <!-- 몸통 (타원형) -->
+          <ellipse cx="12" cy="15.5" rx="6.5" ry="7.5" fill="currentColor" />
+          <!-- 중앙선 (날개 구분선) -->
+          <line x1="12" y1="9" x2="12" y2="23" stroke="var(--bg)" stroke-width="2" />
+          <!-- 점들 (무당벌레 패턴 - 좌우 대칭) -->
+          <circle cx="8.5" cy="11.5" r="1.3" fill="var(--bg)" />
+          <circle cx="15.5" cy="11.5" r="1.3" fill="var(--bg)" />
+          <circle cx="8" cy="15.5" r="1.3" fill="var(--bg)" />
+          <circle cx="16" cy="15.5" r="1.3" fill="var(--bg)" />
+          <circle cx="9" cy="19.5" r="1.3" fill="var(--bg)" />
+          <circle cx="15" cy="19.5" r="1.3" fill="var(--bg)" />
+          <!-- 다리 (좌측 3개) -->
+          <line x1="5.5" y1="11" x2="2.5" y2="9" stroke-width="1.8" stroke-linecap="round" />
+          <line x1="5.5" y1="15.5" x2="2" y2="15.5" stroke-width="1.8" stroke-linecap="round" />
+          <line x1="5.5" y1="20" x2="2.5" y2="22" stroke-width="1.8" stroke-linecap="round" />
+          <!-- 다리 (우측 3개) -->
+          <line x1="18.5" y1="11" x2="21.5" y2="9" stroke-width="1.8" stroke-linecap="round" />
+          <line x1="18.5" y1="15.5" x2="22" y2="15.5" stroke-width="1.8" stroke-linecap="round" />
+          <line x1="18.5" y1="20" x2="21.5" y2="22" stroke-width="1.8" stroke-linecap="round" />
         </svg>
       </button>
     </div>
