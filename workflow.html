@@ -327,6 +327,19 @@ body::before {
   border-color: var(--toolbar-button-hover-border);
   background: var(--toolbar-button-hover-bg);
 }
+.toolbar__button.is-active {
+  border-color: var(--accent-strong);
+  background: var(--toolbar-button-hover-bg);
+  animation: debugPulse 2s ease-in-out infinite;
+}
+@keyframes debugPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(250, 204, 21, 0);
+  }
+}
 
 /* 툴팁 스타일 */
 .has-tooltip {
@@ -349,7 +362,7 @@ body::before {
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
-  z-index: 1000;
+  z-index: 999999;
 }
 .has-tooltip::before {
   content: '';
@@ -363,7 +376,7 @@ body::before {
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.2s ease, visibility 0.2s ease;
-  z-index: 1000;
+  z-index: 999999;
 }
 .has-tooltip:hover::after,
 .has-tooltip:focus-visible::after {
@@ -494,6 +507,7 @@ body[data-theme="light"] .has-tooltip::before {
 .workflow-start {
   display: grid;
   justify-items: center;
+  align-content: center;
   gap: 1rem;
   padding: clamp(2rem, 6vw, 3rem);
   border-radius: var(--radius-lg);
@@ -501,6 +515,8 @@ body[data-theme="light"] .has-tooltip::before {
   border: 1px dashed var(--start-border);
   text-align: center;
   box-shadow: 0 26px 48px rgba(6, 10, 22, 0.55);
+  flex: 1;
+  min-height: 0;
 }
 .workflow-start__title {
   margin: 0;
@@ -650,6 +666,31 @@ body[data-theme="light"] .workflow-start__button:focus-visible {
 .workflow-debug-layer__button:hover {
   border-color: var(--toolbar-button-hover-border);
   background: var(--toolbar-button-hover-bg);
+}
+.workflow-debug-layer__close {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid var(--toolbar-button-border);
+  background: var(--toolbar-button-bg);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.workflow-debug-layer__close svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+.workflow-debug-layer__close:hover {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
 }
 .workflow-debug-layer__logs {
   flex: 1;
@@ -1048,6 +1089,11 @@ body[data-theme="light"] .workflow-stage__step {
         <div class="workflow-debug-layer__actions">
           <button type="button" class="workflow-debug-layer__button" @click="copyDebugLogs">복사</button>
           <button type="button" class="workflow-debug-layer__button" @click="clearDebugLogs">초기화</button>
+          <button type="button" class="workflow-debug-layer__close" @click="toggleDebugLayer" aria-label="닫기">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+          </button>
         </div>
       </div>
       <div class="workflow-debug-layer__logs" ref="debugLogsContainer">
@@ -1249,6 +1295,8 @@ Vue.createApp({
       // 디버그 레이어
       debugLayerVisible: false,
       debugLogs: [],
+      // 진행도 계산을 위한 최대 예상 단계 수 (절대 줄어들지 않음)
+      maxExpectedSteps: 9,
       dragState: {
         active: false,
         startX: 0,
@@ -1266,7 +1314,7 @@ Vue.createApp({
       return Object.keys(this.selections).length;
     },
     /**
-     * 현재 경로에서 예상되는 최대 단계 수 (동적 계산)
+     * 현재 경로에서 예상되는 최대 단계 수 (동적 계산, 절대 줄어들지 않음)
      */
     expectedMaxSteps() {
       // 아직 시작하지 않았으면 전체 단계 수
@@ -1279,13 +1327,17 @@ Vue.createApp({
 
       // 9단계(완료)에 도달했으면 현재까지의 단계 수가 최대
       if (lastStage.stage.id === 9) {
-        return this.visibleStages.length;
+        const finalSteps = this.visibleStages.length;
+        // 최종 단계에 도달하면 maxExpectedSteps를 업데이트하지 않음 (이미 완료)
+        return finalSteps;
       }
 
       // 현재 선택된 경로를 기반으로 최대 단계 수 예측
       // 마지막 선택된 항목의 nextSteps를 확인하여 남은 단계 수 계산
       const lastSelectedStageId = Math.max(...Object.keys(this.selections).map(Number));
       const lastSelectedItemId = this.selections[lastSelectedStageId];
+
+      let calculatedMax = this.workflowSteps.length;
 
       if (lastSelectedItemId) {
         const lastSelectedStage = this.workflowSteps.find(s => s.id === lastSelectedStageId);
@@ -1302,12 +1354,17 @@ Vue.createApp({
             maxRemainingSteps = Math.max(maxRemainingSteps, distanceTo9);
           });
 
-          return this.selectedCount + maxRemainingSteps;
+          calculatedMax = this.selectedCount + maxRemainingSteps;
+        } else {
+          // 기본값: 현재까지 선택 + 최대 예상 남은 단계 (9 - 현재 최대 단계 ID)
+          calculatedMax = this.selectedCount + (this.workflowSteps.length - lastSelectedStageId);
         }
       }
 
-      // 기본값: 현재까지 선택 + 최대 예상 남은 단계 (9 - 현재 최대 단계 ID)
-      return this.selectedCount + (this.workflowSteps.length - lastSelectedStageId);
+      // 절대 이전 값보다 작아지지 않도록 보장 (진행도는 항상 증가하거나 유지)
+      this.maxExpectedSteps = Math.max(this.maxExpectedSteps, calculatedMax, this.selectedCount);
+
+      return this.maxExpectedSteps;
     },
     /**
      * 전체 단계 대비 진행률 (0~1) - 동적 최대 단계 수 기준
@@ -1472,6 +1529,7 @@ Vue.createApp({
       this.selections = {};
       this.lines = [];
       this.connectorSize = { width: 0, height: 0 };
+      this.maxExpectedSteps = 9; // 진행도 초기화
 
       this.logAction('워크플로우 시작');
 
@@ -1500,6 +1558,8 @@ Vue.createApp({
       this.lines = [];
       this.connectorSize = { width: 0, height: 0 };
       this.scale = 1;
+      this.maxExpectedSteps = 9; // 진행도 초기화
+      this.debugLayerVisible = false; // 디버그 로그 자동으로 닫기
 
       // DOM 업데이트 후 스크롤 위치 초기화
       this.$nextTick(() => {
