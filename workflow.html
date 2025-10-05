@@ -78,8 +78,9 @@ body[data-theme="dark"] {
   --option-selected-border: rgba(250, 204, 21, 0.85);
   --option-selected-shadow: rgba(96, 96, 96, 0.4);
   --step-text-color: rgba(229, 229, 229, 0.95);
-  --connector-color: #60a5fa;
-  --connector-shadow: rgba(96, 165, 250, 0.4);
+  --connector-color: #ec4899;
+  --connector-shadow: rgba(236, 72, 153, 0.4);
+  --progress-gradient: linear-gradient(90deg, rgba(56, 189, 248, 0.25), rgba(244, 114, 182, 0.22), rgba(250, 204, 21, 0.2));
 }
 
 body[data-theme="light"] {
@@ -135,8 +136,9 @@ body[data-theme="light"] {
   --option-selected-border: rgba(234, 179, 8, 0.9);
   --option-selected-shadow: rgba(59, 130, 246, 0.28);
   --step-text-color: #1d4ed8;
-  --connector-color: #2563eb;
-  --connector-shadow: rgba(37, 99, 235, 0.4);
+  --connector-color: #dc2626;
+  --connector-shadow: rgba(220, 38, 38, 0.4);
+  --progress-gradient: linear-gradient(90deg, rgba(56, 189, 248, 0.35), rgba(244, 114, 182, 0.32), rgba(250, 204, 21, 0.3));
 }
 * {
   box-sizing: border-box;
@@ -198,7 +200,7 @@ body::before {
   top: 0;
   bottom: 0;
   width: calc(var(--progress-ratio, 0) * 100%);
-  background: linear-gradient(90deg, rgba(56, 189, 248, 0.25), rgba(244, 114, 182, 0.22), rgba(250, 204, 21, 0.2));
+  background: var(--progress-gradient);
   transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: none;
   z-index: 0;
