@@ -1,15 +1,19 @@
-[클로드] 🐛 화살선 중복 렌더링 버그 수정 - 점선이 실선으로 변하는 문제 해결 (claude-sonnet-4-5-20250929)
+[클로드] ✨ UI 개선 - 시작 화면 전환 애니메이션 및 진행도 바 가시성 향상 (claude-sonnet-4-5-20250929)
 
 주요 변경사항:
-- updateConnections() 함수에서 existingLines 중복 병합 제거
-- 수정 전: allLines = [...existingLines, ...newLines] (중복 발생)
-- 수정 후: allLines = newLines (중복 제거)
-- 효과: 단계 진행 시 화살선이 중첩되어 점선이 실선으로 변하던 문제 해결
+1. 시작 화면 → 1단계 전환 애니메이션 추가
+   - data()에 transitioning 상태 추가
+   - startFlow()에서 600ms 애니메이션 트리거
+   - 큰 사각박스가 작아지면서 왼쪽으로 이동하는 부드러운 전환 효과
+   - @keyframes startToStage: scale(1→0.35) + translateX(-60%) + opacity(1→0)
+   - 제목/힌트 텍스트는 fadeOut 애니메이션으로 먼저 사라짐
 
-버그 분석:
-- 단계 6까지 진행 시 line-1-to-2가 4개, line-2-to-4가 3개 중첩
-- 여러 점선이 겹치면서 공백이 메워져 실선처럼 보이는 현상 발생
-- newLines에 이미 기존+새 화살선이 모두 포함되어 있어 existingLines 병합 불필요
+2. 라이트모드 진행도 바 색상 진하게 수정
+   - --progress-gradient alpha 값 증가 (가시성 개선)
+   - 청색: 0.35 → 0.5 (+43%)
+   - 분홍색: 0.32 → 0.45 (+41%)
+   - 노란색: 0.3 → 0.4 (+33%)
+   - 그라디언트 유지하면서 색상 강도 향상
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
