@@ -2065,9 +2065,9 @@ Vue.createApp({
           });
         });
 
-        // 기존 화살선과 새 화살선 병합
-        const allLines = [...existingLines, ...newLines];
-        
+        // newLines가 최종 결과 (기존 화살선 업데이트 + 새 화살선 포함, 중복 없음)
+        const allLines = newLines;
+
         // SVG 크기 계산 - 모든 좌표(시작점, 끝점, 제어점)를 고려 (scale 역보정된 값 기준)
         let maxX = 0;
         let maxY = 0;
@@ -2080,7 +2080,7 @@ Vue.createApp({
             maxY = Math.max(maxY, line.controlPoint1Y, line.controlPoint2Y);
           }
         });
-        
+
         // 계산크기 기준으로 SVG 크기 설정 (항상 고정 너비 사용)
         const calculatedWidth = stageCount * 346;
         const containerHeight = container.scrollHeight;
