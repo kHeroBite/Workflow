@@ -1,17 +1,25 @@
-[클로드] ♻️ 시작 화면 전환 애니메이션 제거 - 즉시 워크플로우 시작 (claude-sonnet-4-5-20250929)
+[클로드] 🐛 이미지 저장 기능 개선 - html-to-image로 교체하여 버그 수정 (claude-sonnet-4-5-20250929)
 
 주요 변경사항:
-1. 시작 버튼 클릭 시 작아지는 애니메이션 제거
-   - CSS: .workflow-start.is-transitioning 클래스 및 관련 애니메이션 제거
-   - @keyframes startToStage, fadeOut 애니메이션 삭제
-   - JavaScript: transitioning 상태 변수 완전 제거
-   - startFlow() 함수에서 setTimeout 제거, 즉시 실행
-   - HTML: :class, :disabled 바인딩 제거
+1. 라이브러리 교체
+   - 제거: html2canvas (1.4.1) - transform/SVG 렌더링 문제
+   - 추가: html-to-image (1.11.11) - SVG 기반, 정확한 캡처
+   - CDN: https://unpkg.com/html-to-image@1.11.11/dist/html-to-image.js
 
-2. 사용자 경험 개선
-   - 시작 버튼 클릭 즉시 워크플로우 표시
-   - 600ms 대기 시간 제거
-   - 더 직관적이고 빠른 인터페이스
+2. saveAsImage() 함수 재작성
+   - html-to-image의 toPng() 메서드 사용
+   - 복잡한 padding/offset 계산 제거 (자동 처리)
+   - 옵션 간소화:
+     • backgroundColor: null (투명 배경)
+     • pixelRatio: 2 (고해상도)
+     • cacheBust: true (캐시 방지)
+     • padding: 20px (여유 공간)
+
+3. 버그 수정
+   - ✅ 글자 중복 렌더링 문제 해결
+   - ✅ 화살선 위치 및 누락 문제 해결
+   - ✅ 과도한 우측 여백 문제 해결
+   - ✅ CSS transform, SVG 정확히 캡처
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 

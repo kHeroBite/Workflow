@@ -1117,7 +1117,7 @@ body[data-theme="light"] .workflow-stage__step {
   }
 }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://unpkg.com/html-to-image@1.11.11/dist/html-to-image.js"></script>
 </head>
 <body data-theme="dark">
 <div class="page">
@@ -2507,7 +2507,7 @@ Vue.createApp({
     },
     /**
      * 현재 워크플로우 화면을 이미지로 저장
-     * html2canvas 라이브러리를 사용하여 DOM을 캔버스로 변환 후 PNG 이미지로 다운로드
+     * html-to-image 라이브러리를 사용하여 DOM을 PNG 이미지로 변환 후 다운로드
      */
     async saveAsImage() {
       if (!this.started) {
@@ -2517,58 +2517,32 @@ Vue.createApp({
       this.logAction('이미지 저장 시작');
 
       try {
-        // 워크플로우 단계 리스트 영역을 캡처 (전체 스크롤 영역 포함)
+        // 워크플로우 단계 리스트 영역을 캡처
         const stageList = this.$refs.stageListWrapper;
         if (!stageList) {
           alert('캡처할 영역을 찾을 수 없습니다.');
           return;
         }
-        
-        // 전체 영역 크기 계산 (여유 공간 추가하여 잘림 방지)
-        const leftPadding = 20; // 왼쪽 여유 공간 (20px 추가)
-        const topPadding = 50; // 위쪽 여유 공간 (50px 추가)
-        const rightPadding = 50; // 오른쪽 여유 공간
-        const bottomPadding = -50; // 하단 여유 공간 (50px 제거)
-        const totalWidth = stageList.scrollWidth + leftPadding + rightPadding;
-        const totalHeight = stageList.scrollHeight + topPadding + bottomPadding;
-        
-        // html2canvas로 DOM을 이미지로 변환 (전체 스크롤 영역 포함)
-        const capturedCanvas = await html2canvas(stageList, {
-          backgroundColor: null,
-          scale: 2, // 고해상도 이미지를 위한 스케일
-          logging: false,
-          useCORS: true,
-          allowTaint: true,
-          x: -leftPadding,
-          y: -topPadding,
-          scrollX: -leftPadding,
-          scrollY: -topPadding,
-          width: totalWidth,
-          height: totalHeight,
-          windowWidth: totalWidth,
-          windowHeight: totalHeight
-        });
-        
-        // 캔버스를 Blob으로 변환
-        capturedCanvas.toBlob((blob) => {
-          if (!blob) {
-            alert('이미지 생성에 실패했습니다.');
-            return;
+
+        // html-to-image로 DOM을 PNG 데이터 URL로 변환
+        const dataUrl = await htmlToImage.toPng(stageList, {
+          backgroundColor: null, // 투명 배경
+          pixelRatio: 2, // 고해상도 (Retina 디스플레이 대응)
+          cacheBust: true, // 캐시 방지
+          style: {
+            margin: '0',
+            padding: '20px', // 여유 공간
           }
-          
-          // 다운로드 링크 생성
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-          link.download = `workflow-${timestamp}.png`;
-          link.href = url;
-          link.click();
+        });
 
-          this.logAction(`이미지 저장 완료: workflow-${timestamp}.png`);
+        // 다운로드 링크 생성
+        const link = document.createElement('a');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+        link.download = `workflow-${timestamp}.png`;
+        link.href = dataUrl;
+        link.click();
 
-          // 메모리 정리
-          URL.revokeObjectURL(url);
-        }, 'image/png');
+        this.logAction(`이미지 저장 완료: workflow-${timestamp}.png`);
       } catch (error) {
         console.error('이미지 저장 중 오류 발생:', error);
         this.logAction(`이미지 저장 실패: ${error.message}`);
