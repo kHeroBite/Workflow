@@ -1,1 +1,18 @@
-[클로드] 🪐 행성 궤도 최적화 - 완벽한 타원 경로, 테마별 색상 및 일정한 속도 구현 (claude-sonnet-4-5-20250929)
+[클로드] 🔗 화살선 시스템 완전 개선 - 전체보기 버그 수정, 테마별 단색, 일관된 애니메이션 속도 (claude-sonnet-4-5-20250929)
+
+주요 변경사항:
+- 전체보기 모드에서 화살선 사라지는 버그 수정 (gradient → 단색)
+- 화살선 스타일 개선: 굵기 2/3 축소, 점선 10px 고정
+- 테마별 강조 색상: 다크(#60a5fa), 라이트(#2563eb)
+- 애니메이션 속도 일관성: 그리기 5초(30px/s), 흐름 2초(10px/s)
+- 2단계 재선택 시 불필요한 단계 제거 로직 수정
+
+기술적 개선:
+- linesFlowEnabled 플래그로 전체보기 모드 애니메이션 제어
+- stroke-dasharray 픽셀 기반으로 변경 (pathLength 제거)
+- Vue 클래스 바인딩 단순화 (boolean 직접 사용)
+- CSS 변수로 테마별 색상 관리
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>

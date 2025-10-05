@@ -78,6 +78,8 @@ body[data-theme="dark"] {
   --option-selected-border: rgba(250, 204, 21, 0.85);
   --option-selected-shadow: rgba(96, 96, 96, 0.4);
   --step-text-color: rgba(229, 229, 229, 0.95);
+  --connector-color: #60a5fa;
+  --connector-shadow: rgba(96, 165, 250, 0.4);
 }
 
 body[data-theme="light"] {
@@ -133,6 +135,8 @@ body[data-theme="light"] {
   --option-selected-border: rgba(234, 179, 8, 0.9);
   --option-selected-shadow: rgba(59, 130, 246, 0.28);
   --step-text-color: #1d4ed8;
+  --connector-color: #2563eb;
+  --connector-shadow: rgba(37, 99, 235, 0.4);
 }
 * {
   box-sizing: border-box;
@@ -1006,31 +1010,34 @@ body[data-theme="light"] .workflow-stage__step {
   z-index: 99999;
 }
 .workflow-connector-line {
-  stroke: url(#connectorGradient);
-  stroke-width: 4;
+  stroke: var(--connector-color, #60a5fa); /* 테마별 강조 색상 */
+  stroke-width: 2.67; /* 2/3로 축소 */
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
-  /* pathLength 기반 점선 패턴 - 모든 선에서 일관된 간격 */
-  stroke-dasharray: 6 4;
-  stroke-dashoffset: 100;
+  /* 픽셀 기반 점선 패턴 (10px 점선 + 10px 간격) */
+  stroke-dasharray: 10 10;
+  stroke-dashoffset: 150; /* 픽셀 기반 초기 오프셋 (부드러운 속도) */
   opacity: 0;
   vector-effect: non-scaling-stroke;
   shape-rendering: geometricPrecision;
-  filter: drop-shadow(0 2px 6px rgba(59, 130, 246, 0.4));
+  filter: drop-shadow(0 2px 6px var(--connector-shadow, rgba(96, 165, 250, 0.4)));
   transition: opacity 0.3s ease;
 }
+/* 활성 시 즉시 표시 */
 .workflow-connector-line.is-active {
   opacity: 1;
+  stroke-dashoffset: 0;
 }
-/* 그리기 + 흐름 동시 적용 (선택/생성 시) */
+/* 그리기 애니메이션 (선택 시) */
 .workflow-connector-line.is-active.has-flow.animate-draw {
-  animation: connectorDraw 1.2s linear forwards,
-             connectorFlow 2s linear 1.2s infinite;
+  stroke-dashoffset: 150; /* 픽셀 기반 시작값 (부드러운 속도) */
+  animation: connectorDraw 5s linear forwards,
+             connectorFlow 2s linear 5s infinite;
 }
-/* 흐름만 적용 (줌/리레이아웃 시 재계산할 때 사라짐 방지) */
+/* 흐름 애니메이션만 (전체보기 모드) */
 .workflow-connector-line.is-active.has-flow:not(.animate-draw) {
-  stroke-dashoffset: 0; /* 즉시 보이도록 기본 오프셋 0 보정 */
+  stroke-dashoffset: 0;
   animation: connectorFlow 2s linear infinite;
 }
 .workflow-connector-dot {
@@ -1044,22 +1051,22 @@ body[data-theme="light"] .workflow-stage__step {
   transform: scale(1);
 }
 
-/* 연결선 그리기 애니메이션 - pathLength 100 기준으로 앞에서부터 순차적으로 그려짐 */
+/* 연결선 그리기 애니메이션 - 픽셀 기반으로 앞에서부터 순차적으로 그려짐 (부드러운 속도: 30px/s) */
 @keyframes connectorDraw {
   0% {
-    stroke-dashoffset: 100;
+    stroke-dashoffset: 150;
   }
   100% {
     stroke-dashoffset: 0;
   }
 }
-/* 점선이 흐르는 애니메이션 */
+/* 점선이 흐르는 애니메이션 - 20px (10px 점선 + 10px 간격) 단위로 이동 */
 @keyframes connectorFlow {
   0% {
     stroke-dashoffset: 0;
   }
   100% {
-    stroke-dashoffset: -10;
+    stroke-dashoffset: -20;
   }
 }
 @keyframes nebula {
@@ -1249,7 +1256,7 @@ body[data-theme="light"] .workflow-stage__step {
                 </linearGradient>
               </defs>
               <g v-for="line in lines" :key="line.id">
-                <path class="workflow-connector-line" :class="{ 'is-active': line.active, [line.cssClassFlow]: true, [line.cssClassDraw]: true }" :d="line.path" pathLength="100" />
+                <path class="workflow-connector-line" :class="{ 'is-active': line.active, 'has-flow': line.flow, 'animate-draw': line.draw }" :d="line.path" />
                 <circle class="workflow-connector-dot" :class="{ 'is-active': line.active }" :cx="line.startX" :cy="line.startY" r="6" />
                 <circle class="workflow-connector-dot" :class="{ 'is-active': line.active }" :cx="line.endX" :cy="line.endY" r="6" />
               </g>
@@ -1781,23 +1788,8 @@ Vue.createApp({
         const nextStageIds = nextSteps.map(ns => ns.stageId).join(', ');
         this.logAction(`다음 단계: ${nextStageIds}`);
 
-        if (isBackNavigation) {
-          // 이전 단계 재선택 시: 건너뛰는 단계가 있으면 현재 + 1 단계만 추가 (갑작스러운 완료 단계 방지)
-          const hasSkip = nextSteps.some(ns => ns.stageId > stageId + 1);
-          if (hasSkip) {
-            // 현재 단계 + 1 단계를 추가 (순차적 진행 강제)
-            const nextStage = this.workflowSteps.find(s => s.id === stageId + 1);
-            if (nextStage) {
-              this.addNextStages([{ stageId: nextStage.id, itemIds: null }]);
-            }
-          } else {
-            // 건너뛰기 없으면 정상 추가
-            this.addNextStages(nextSteps);
-          }
-        } else {
-          // 정상 진행 시: 모든 다음 단계 추가 (건너뛰기 허용)
-          this.addNextStages(nextSteps);
-        }
+        // 뒤로 가기 여부와 관계없이 nextSteps 그대로 추가 (건너뛰기 허용)
+        this.addNextStages(nextSteps);
       } else {
         this.logAction('다음 단계 없음 (완료)');
       }
@@ -1923,9 +1915,9 @@ Vue.createApp({
       }
 
       // 컨테이너 크기 계산 (단계 개수 x 고정 너비) - stageCards 유무와 무관하게 항상 갱신
-      // 단, 전체보기 모드(isFit=true)일 때는 크기 강제 설정하지 않음 (스크롤바 방지)
+      // 전체보기 모드에서도 고정 너비 유지 (좌표 계산 일관성 확보)
       const stageCount = this.visibleStages.length || 0;
-      if (stageCount >= 0 && !this.isFit) {
+      if (stageCount >= 0) {
         const stageWidth = 346; // 단계당 고정 너비
         const totalWidth = stageCount * stageWidth;
 
@@ -1933,9 +1925,7 @@ Vue.createApp({
         container.style.minWidth = `${totalWidth}px`;
         container.style.maxWidth = `${totalWidth}px`;
 
-        this.logAction(`캔버스 크기 설정: ${totalWidth}px (단계 ${stageCount}개 × ${stageWidth}px)`);
-      } else if (this.isFit) {
-        this.logAction(`전체보기 모드: 캔버스 크기 강제 설정 건너뜀 (자동 크기)`);
+        this.logAction(`캔버스 크기 설정: ${totalWidth}px (단계 ${stageCount}개 × ${stageWidth}px) ${this.isFit ? '[전체보기 모드]' : ''}`);
       }
 
       const stageCards = this.$refs.stageCards || [];
@@ -2035,6 +2025,9 @@ Vue.createApp({
             const startRect = startOption.getBoundingClientRect();
             const endRect = endOption.getBoundingClientRect();
 
+            // 디버그: 좌표 계산 정보 로그
+            this.logAction(`[좌표 계산] ${lineId} | scale=${scaleFactor.toFixed(3)}, isFit=${this.isFit} | containerRect(L=${Math.round(containerRect.left)}, T=${Math.round(containerRect.top)}) | startRect(R=${Math.round(startRect.right)}, T=${Math.round(startRect.top)}) | endRect(L=${Math.round(endRect.left)}, T=${Math.round(endRect.top)})`);
+
             // 좌표를 viewport 기준(getBoundingClientRect)에서 컨테이너 로컬 좌표(비스케일)로 보정
             const startX = (startRect.right - containerRect.left) / scaleFactor;
             const startY = ((startRect.top + startRect.height / 2) - containerRect.top) / scaleFactor;
@@ -2049,7 +2042,7 @@ Vue.createApp({
 
             const path = `M ${startX} ${startY} C ${controlPoint1X} ${controlPoint1Y}, ${controlPoint2X} ${controlPoint2Y}, ${endX} ${endY}`;
 
-            this.logAction(`화살선 생성: ${lineId} | 시작(${Math.round(startX)}, ${Math.round(startY)}) → 끝(${Math.round(endX)}, ${Math.round(endY)})`);
+            this.logAction(`화살선 생성: ${lineId} | 시작(${Math.round(startX)}, ${Math.round(startY)}) → 끝(${Math.round(endX)}, ${Math.round(endY)}) | flow=${this.linesFlowEnabled}, draw=${!forceRecalculate}`);
 
             newLines.push({
               id: lineId,
@@ -2086,9 +2079,8 @@ Vue.createApp({
           }
         });
         
-        // 계산크기 기준으로 SVG 크기 설정 (항상 계산크기와 동일하게)
-        // 단, 전체보기 모드일 때는 실제 콘텐츠 크기 사용 (스크롤바 방지)
-        const calculatedWidth = this.isFit ? container.scrollWidth : stageCount * 346;
+        // 계산크기 기준으로 SVG 크기 설정 (항상 고정 너비 사용)
+        const calculatedWidth = stageCount * 346;
         const containerHeight = container.scrollHeight;
 
         // 캔버스는 계산크기와 정확히 일치하도록 SVG 크기 설정
@@ -2096,14 +2088,15 @@ Vue.createApp({
           width: calculatedWidth,
           height: containerHeight
         };
-        this.logAction(`SVG 크기 설정: ${calculatedWidth}px × ${containerHeight}px ${this.isFit ? '(전체보기 모드: 실제 콘텐츠 크기)' : ''}`);
-        // 라인 상태를 반영하여 애니메이션 클래스 토글
-        this.lines = allLines.map(line => ({
-          ...line,
-          // 렌더에서 클래스 계산 용도
-          cssClassFlow: line.flow ? 'has-flow' : '',
-          cssClassDraw: line.draw ? 'animate-draw' : ''
-        }));
+        this.logAction(`SVG 크기 설정: ${calculatedWidth}px × ${containerHeight}px | 화살선 최대 좌표: maxX=${Math.round(maxX)}, maxY=${Math.round(maxY)} | 화살선 개수: ${allLines.length}`);
+
+        // 라인 배열 설정 (Vue가 직접 line.flow, line.draw 사용)
+        this.lines = allLines;
+
+        // 디버그: 최종 lines 배열 상태 로그
+        this.lines.forEach(line => {
+          this.logAction(`[최종 Line] ${line.id} | active=${line.active}, flow=${line.flow}, draw=${line.draw} | path="${line.path.substring(0, 50)}..."`);
+        });
         
       // 컨테이너 너비 최적화
       if (container) {
@@ -2289,14 +2282,16 @@ Vue.createApp({
           return;
         }
 
-        // 먼저 스케일을 1로 리셋하고 컨테이너 크기 제한 제거
+        // 먼저 스케일을 1로 리셋하되, 컨테이너 크기는 고정 (layout 변경 방지)
         this.scale = 1;
-        container.style.width = '';
-        container.style.minWidth = '';
-        container.style.maxWidth = '';
-        canvas.style.maxWidth = ''; // canvas maxWidth도 제거
+        const stageCount = this.visibleStages.length || 0;
+        const fixedWidth = stageCount * 346; // 단계당 고정 너비
+        container.style.width = `${fixedWidth}px`;
+        container.style.minWidth = `${fixedWidth}px`;
+        container.style.maxWidth = `${fixedWidth}px`;
+        canvas.style.maxWidth = ''; // canvas maxWidth는 제거
 
-        this.logAction(`전체 보기 시작: 크기 제한 제거, scale=1로 리셋`);
+        this.logAction(`전체 보기 시작: container 고정 너비 ${fixedWidth}px 설정, scale=1로 리셋`);
 
         this.$nextTick(() => {
           // 정확한 콘텐츠 크기 측정
@@ -2317,6 +2312,7 @@ Vue.createApp({
           const previousScale = this.scale;
           this.scale = Math.min(1.5, Math.max(0.3, +target.toFixed(3)));
           this.isFit = true;
+          this.linesFlowEnabled = true; // 테스트: 전체보기 모드에서도 애니메이션 활성화
 
           // canvas의 maxWidth를 설정하여 transform scale의 layout 공간 제한
           canvas.style.maxWidth = viewport.clientWidth + 'px';
