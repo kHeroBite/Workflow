@@ -670,28 +670,6 @@ body[data-theme="light"] .workflow-start__button:hover,
 body[data-theme="light"] .workflow-start__button:focus-visible {
   box-shadow: 0 22px 44px rgba(59, 130, 246, 0.55);
 }
-.workflow-start.is-transitioning {
-  animation: startToStage 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-.workflow-start.is-transitioning .workflow-start__title,
-.workflow-start.is-transitioning .workflow-start__hint {
-  animation: fadeOut 0.3s ease forwards;
-}
-@keyframes startToStage {
-  0% {
-    transform: scale(1) translateX(0);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(0.35) translateX(-60%);
-    opacity: 0;
-  }
-}
-@keyframes fadeOut {
-  to {
-    opacity: 0;
-  }
-}
 .workflow-progress {
   display: grid;
   gap: 0.7rem;
@@ -1262,10 +1240,10 @@ body[data-theme="light"] .workflow-stage__step {
     </section>
     <div class="workflow-viewport" ref="workflowViewport" :class="{ 'is-dragging': dragState.active }" @mousedown="handleDragStart" @wheel="handleWheel">
       <div class="workflow-canvas" ref="workflowCanvas" :style="canvasStyle">
-        <section class="workflow-start" v-if="!started" :class="{ 'is-transitioning': transitioning }" aria-live="polite">
+        <section class="workflow-start" v-if="!started" aria-live="polite">
           <h2 class="workflow-start__title">유지보수 워크플로우 시뮬레이션</h2>
           <p class="workflow-start__hint">버튼을 누르면 유입경로부터 시작하여 선택에 따라 동적으로 다음 단계가 표시됩니다. 선택 항목은 화살표로 연결됩니다.</p>
-          <button type="button" class="workflow-start__button" @click="startFlow" :disabled="transitioning">시작</button>
+          <button type="button" class="workflow-start__button" @click="startFlow">시작</button>
         </section>
         <div class="workflow-board" v-if="started" ref="workflowBoard">
           <section class="workflow-stage-list" ref="stageListWrapper" aria-live="polite" role="list">
@@ -1439,7 +1417,6 @@ Vue.createApp({
       workflowSteps,
       theme: document.body.dataset.theme || 'dark',
       started: false,
-      transitioning: false, // 시작 화면 → 1단계 전환 애니메이션 상태
       // 각 단계별 선택된 항목 저장: { stageId: itemId }
       selections: {},
       // 화면에 표시될 단계들의 배열 (동적으로 변경됨)
@@ -1711,30 +1688,23 @@ Vue.createApp({
     startFlow() {
       this.logAction('워크플로우 시작');
 
-      // 애니메이션 시작
-      this.transitioning = true;
+      this.started = true;
+      this.selections = {};
+      this.lines = [];
+      this.connectorSize = { width: 0, height: 0 };
+      this.maxExpectedSteps = 9; // 진행도 초기화
 
-      // 애니메이션 시간 후 실제 워크플로우 표시
-      setTimeout(() => {
-        this.started = true;
-        this.transitioning = false;
-        this.selections = {};
-        this.lines = [];
-        this.connectorSize = { width: 0, height: 0 };
-        this.maxExpectedSteps = 9; // 진행도 초기화
+      // 첫 번째 단계만 표시 (전체 항목 표시)
+      const firstStage = this.workflowSteps[0];
+      this.visibleStages = [{ stage: firstStage, visibleItems: firstStage.items }];
 
-        // 첫 번째 단계만 표시 (전체 항목 표시)
-        const firstStage = this.workflowSteps[0];
-        this.visibleStages = [{ stage: firstStage, visibleItems: firstStage.items }];
-
-        this.$nextTick(() => {
-          this.updateConnections();
-          const firstOptions = this.$refs.stageCards?.[0]?.querySelector('.workflow-option');
-          if (firstOptions && !this.prefersReducedMotion) {
-            firstOptions.focus({ preventScroll: true });
-          }
-        });
-      }, 600); // 애니메이션 시간과 일치
+      this.$nextTick(() => {
+        this.updateConnections();
+        const firstOptions = this.$refs.stageCards?.[0]?.querySelector('.workflow-option');
+        if (firstOptions && !this.prefersReducedMotion) {
+          firstOptions.focus({ preventScroll: true });
+        }
+      });
     },
     
     /**
