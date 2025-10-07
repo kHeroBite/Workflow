@@ -1157,6 +1157,152 @@ body[data-theme="light"] .workflow-stage__step {
     transition-duration: 0.001ms !important;
   }
 }
+
+.share-center {
+  position: fixed;
+  inset: 0;
+  padding: 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 12, 24, 0.55);
+  backdrop-filter: blur(16px);
+  z-index: 1400;
+}
+body[data-theme="light"] .share-center {
+  background: rgba(248, 250, 252, 0.68);
+}
+.share-center__panel {
+  width: min(460px, 100%);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--toolbar-border);
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  padding: 1.6rem;
+}
+.share-center__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+.share-center__title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.share-center__close {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--toolbar-button-border);
+  background: var(--toolbar-button-bg);
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.share-center__close svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+.share-center__close:hover,
+.share-center__close:focus-visible {
+  border-color: var(--toolbar-button-hover-border);
+  background: var(--toolbar-button-hover-bg);
+}
+.share-center__description {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.share-center__primary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+.share-center__primary-button {
+  flex: 1 1 200px;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--toolbar-button-border);
+  background: var(--toolbar-button-bg);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.share-center__primary-button:hover,
+.share-center__primary-button:focus-visible {
+  border-color: var(--toolbar-button-hover-border);
+  background: var(--toolbar-button-hover-bg);
+}
+.share-center__options {
+  display: grid;
+  gap: 0.6rem;
+}
+.share-center__option {
+  width: 100%;
+  border-radius: 16px;
+  border: 1px solid var(--toolbar-button-border);
+  background: rgba(32, 32, 48, 0.35);
+  padding: 0.9rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  color: var(--text-primary);
+  text-align: left;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+body[data-theme="light"] .share-center__option {
+  background: rgba(255, 255, 255, 0.92);
+}
+.share-center__option:hover,
+.share-center__option:focus-visible {
+  border-color: var(--toolbar-button-hover-border);
+  background: var(--toolbar-button-hover-bg);
+}
+.share-center__option-label {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.share-center__option-helper {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+.share-center__footer {
+  font-size: 0.78rem;
+  color: var(--text-faded);
+  line-height: 1.5;
+}
+@media (max-width: 640px) {
+  .share-center {
+    padding: 0.8rem;
+  }
+  .share-center__panel {
+    padding: 1.2rem;
+    gap: 1rem;
+  }
+  .share-center__primary-actions {
+    flex-direction: column;
+  }
+  .share-center__primary-button {
+    width: 100%;
+  }
+}
+
 </style>
 <script src="https://unpkg.com/html-to-image@1.11.11/dist/html-to-image.js"></script>
 </head>
@@ -1197,10 +1343,13 @@ body[data-theme="light"] .workflow-stage__step {
           <path d="M21 15l-5-5L5 21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
       </button>
-      <button type="button" class="toolbar__button toolbar__button--icon-only has-tooltip" id="shareEmail" aria-label="이메일로 보내기" data-tooltip="이메일로 보내기" @click="shareImageByEmail" :disabled="!started">
+      <button type="button" class="toolbar__button toolbar__button--icon-only has-tooltip" id="shareWorkflow" aria-label="공유" data-tooltip="공유" @click="shareWorkflow" :disabled="!started">
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 4h16a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-          <polyline points="4,6 12,12 20,6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+          <circle cx="18" cy="5" r="2.5" fill="currentColor" />
+          <circle cx="6" cy="12" r="2.5" fill="currentColor" />
+          <circle cx="18" cy="19" r="2.5" fill="currentColor" />
+          <line x1="8.2" y1="11.1" x2="15.8" y2="6.9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          <line x1="8.2" y1="12.9" x2="15.8" y2="17.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
         </svg>
       </button>
       <div class="toolbar__zoom-slider">
@@ -1335,7 +1484,36 @@ body[data-theme="light"] .workflow-stage__step {
         </div>
       </div>
     </div>
-  </main>
+
+  <div v-if="shareCenter.visible" class="share-center" role="dialog" aria-modal="true" aria-labelledby="shareCenterTitle">
+    <div class="share-center__panel">
+      <div class="share-center__header">
+        <h2 class="share-center__title" id="shareCenterTitle">공유 센터</h2>
+        <button type="button" class="share-center__close" @click="closeShareCenter" aria-label="공유 센터 닫기">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M18 6L6 18M6 6l12 12" fill="none" />
+          </svg>
+        </button>
+      </div>
+      <p class="share-center__description">
+        공유용 PNG 이미지가 준비되었습니다. 필요에 따라 메시지를 복사하고 원하는 메신저나 SNS에서 이미지를 첨부해 주세요.
+      </p>
+      <div class="share-center__primary-actions">
+        <button type="button" class="share-center__primary-button" @click="downloadShareImage">PNG 이미지 저장</button>
+        <button type="button" class="share-center__primary-button" @click="copyShareMessage">공유 메시지 복사</button>
+      </div>
+      <div class="share-center__options">
+        <button type="button" class="share-center__option" v-for="target in shareTargets" :key="target.id" @click="handleShareTarget(target.id)">
+          <span class="share-center__option-label">{{ target.label }}</span>
+          <span class="share-center__option-helper">{{ target.description }}</span>
+        </button>
+      </div>
+      <div class="share-center__footer">
+        공유 메시지에는 PNG 파일명을 포함하고 있습니다. 모바일 기기에서는 메신저 호출이 제한될 수 있으니 복사 후 직접 붙여넣어 주세요.
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
@@ -1459,6 +1637,19 @@ Vue.createApp({
       // 디버그 레이어
       debugLayerVisible: false,
       debugLogs: [],
+      shareCenter: {
+        visible: false,
+        dataUrl: '',
+        filename: '',
+        message: '',
+        downloadPrepared: false
+      },
+      shareTargets: [
+        { id: 'email', label: '메일 보내기', description: '메일 클라이언트를 열어 이미지와 메시지를 첨부' },
+        { id: 'kakao', label: '카카오톡', description: '메시지를 복사해 카카오톡 대화창에 붙여넣기' },
+        { id: 'sms', label: '문자 메시지', description: '모바일 문자 앱에서 공유 메시지로 전송' },
+        { id: 'sns', label: 'SNS 공유', description: 'SNS 공유 창을 열거나 메시지를 복사하여 활용' }
+      ],
       // 진행도 계산을 위한 최대 예상 단계 수 (절대 줄어들지 않음)
       maxExpectedSteps: 9,
       dragState: {
@@ -2602,72 +2793,281 @@ Vue.createApp({
       }
     },
 
+
     /**
-     * 워크플로우 이미지를 이메일로 공유
-     * Web Share API 지원 시 파일을 직접 공유하고, 미지원 시 mailto 링크로 안내
+     * 워크플로우 이미지를 이메일을 포함한 다양한 채널로 공유
      */
-    async shareImageByEmail() {
+    async shareWorkflow() {
       if (!this.started) {
         return;
       }
 
-      this.logAction('이미지 이메일 공유 준비 시작');
+      this.logAction('공유 준비 시작');
 
       try {
         const { dataUrl, filename } = await this.captureWorkflowImage();
 
-        let sharedViaShareApi = false;
-        if (
-          typeof navigator !== 'undefined' &&
-          typeof navigator.share === 'function' &&
-          typeof navigator.canShare === 'function' &&
-          typeof File === 'function'
-        ) {
-          try {
-            const blob = await (await fetch(dataUrl)).blob();
-            const file = new File([blob], filename, { type: 'image/png' });
-
-            if (navigator.canShare({ files: [file] })) {
-              await navigator.share({
-                files: [file],
-                title: 'Workflow 이미지 공유',
-                text: '워크플로우 이미지 스냅샷을 공유합니다.'
-              });
-              this.logAction(`이미지 이메일 공유 완료(공유 API): ${filename}`);
-              sharedViaShareApi = true;
-            }
-          } catch (shareError) {
-            console.warn('공유 API 사용 실패, mailto로 폴백합니다.', shareError);
-          }
-        }
-
-        if (sharedViaShareApi) {
+        if (await this.tryShareWithNativeAPI(dataUrl, filename)) {
           return;
         }
 
-        this.triggerImageDownload(dataUrl, filename);
+        this.shareCenter.visible = true;
+        this.shareCenter.dataUrl = dataUrl;
+        this.shareCenter.filename = filename;
+        this.shareCenter.message = this.buildShareMessage(filename);
+        this.shareCenter.downloadPrepared = false;
 
-        const subject = encodeURIComponent('Workflow 이미지 공유');
-        const bodyLines = [
-          '워크플로우 이미지 파일이 다운로드되었습니다.',
-          `${filename} 파일을 메일에 첨부하여 공유해주세요.`,
-          '',
-          '※ 브라우저가 메일 앱을 자동으로 열지 않으면 수동으로 파일을 첨부해 주세요.'
-        ];
-        const body = encodeURIComponent(bodyLines.join('\r\n'));
-        window.location.href = `mailto:?subject=${subject}&body=${body}`;
-
-        this.logAction(`메일 작성 창 열림: ${filename}`);
+        this.logAction(`공유 센터 열림: ${filename}`);
       } catch (error) {
-        console.error('이미지 이메일 공유 실패:', error);
-        this.logAction(`이미지 이메일 공유 실패: ${error.message}`);
+        console.error('공유 준비 중 오류:', error);
+        this.logAction(`공유 준비 실패: ${error.message}`);
         if (error.message === '캡처할 영역을 찾을 수 없습니다.') {
           alert('캡처할 영역을 찾을 수 없습니다.');
         } else {
-          alert('이메일로 이미지를 준비하는 동안 오류가 발생했습니다.');
+          alert('공유 이미지를 준비하는 동안 오류가 발생했습니다.');
         }
       }
     },
+
+    /**
+     * Web Share API를 활용하여 네이티브 공유 시도
+     * @returns {boolean} 성공 여부
+     */
+    async tryShareWithNativeAPI(dataUrl, filename) {
+      if (typeof navigator === 'undefined' || typeof navigator.share !== 'function') {
+        return false;
+      }
+
+      const shareText = this.buildShareMessage(filename);
+
+      if (typeof File === 'function') {
+        try {
+          const blob = await (await fetch(dataUrl)).blob();
+          const file = new File([blob], filename, { type: 'image/png' });
+          if (typeof navigator.canShare !== 'function' || navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: 'Workflow 공유 스냅샷',
+              text: shareText
+            });
+            this.logAction(`공유 완료(Web Share API + 파일): ${filename}`);
+            return true;
+          }
+        } catch (error) {
+          console.warn('파일 첨부 공유 실패, 텍스트 공유로 폴백합니다.', error);
+        }
+      }
+
+      try {
+        await navigator.share({
+          title: 'Workflow 공유 스냅샷',
+          text: shareText
+        });
+        this.logAction('공유 완료(Web Share API 텍스트 전송)');
+        return true;
+      } catch (error) {
+        console.warn('Web Share API 텍스트 공유도 실패하여 사용자 정의 공유 센터를 사용합니다.', error);
+      }
+
+      return false;
+    },
+
+    /**
+     * 공유 메시지 생성
+     */
+    buildShareMessage(filename) {
+      const lastStage = this.visibleStages[this.visibleStages.length - 1]?.stage?.title || '워크플로우';
+      const selectionCount = this.selectedCount;
+      const timestamp = new Date().toLocaleString();
+
+      return [
+        'Workflow 시뮬레이션 이미지를 공유합니다.',
+        `파일명: ${filename}`,
+        `현재 단계: ${lastStage}`,
+        `선택된 단계 수: ${selectionCount}개`,
+        '이미지를 첨부하여 공유해 주세요.',
+        `공유 준비 시각: ${timestamp}`,
+      ].join('
+');
+    },
+
+    /**
+     * 공유 센터 닫기
+     */
+    closeShareCenter() {
+      if (!this.shareCenter.visible) {
+        return;
+      }
+      this.shareCenter.visible = false;
+      this.shareCenter.dataUrl = '';
+      this.shareCenter.filename = '';
+      this.shareCenter.message = '';
+      this.shareCenter.downloadPrepared = false;
+      this.logAction('공유 센터 닫힘');
+    },
+
+    /**
+     * 공유용 PNG 다운로드
+     */
+    downloadShareImage() {
+      if (!this.shareCenter.dataUrl || !this.shareCenter.filename) {
+        alert('공유 이미지를 아직 준비하지 못했습니다. 다시 시도해 주세요.');
+        return;
+      }
+      this.triggerImageDownload(this.shareCenter.dataUrl, this.shareCenter.filename);
+      this.shareCenter.downloadPrepared = true;
+      this.logAction(`공유 이미지 저장: ${this.shareCenter.filename}`);
+    },
+
+    /**
+     * 공유 메시지 클립보드 복사
+     */
+    async copyShareMessage() {
+      if (!this.shareCenter.message) {
+        alert('공유 메시지가 아직 준비되지 않았습니다.');
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(this.shareCenter.message);
+        this.logAction('공유 메시지 복사 완료');
+        alert('공유 메시지가 복사되었습니다. 원하는 메신저에 붙여넣어 주세요.');
+      } catch (error) {
+        console.error('공유 메시지 복사 실패:', error);
+        this.logAction(`공유 메시지 복사 실패: ${error.message}`);
+        alert('공유 메시지를 복사하지 못했습니다. 브라우저 권한을 확인해주세요.');
+      }
+    },
+
+    /**
+     * 공유 대상별 액션 분기
+     */
+    handleShareTarget(targetId) {
+      switch (targetId) {
+        case 'email':
+          this.shareViaEmail();
+          break;
+        case 'kakao':
+          this.shareViaKakao();
+          break;
+        case 'sms':
+          this.shareViaSMS();
+          break;
+        case 'sns':
+          this.shareViaSNS();
+          break;
+        default:
+          console.warn('알 수 없는 공유 대상:', targetId);
+      }
+    },
+
+    /**
+     * 메일 공유
+     */
+    shareViaEmail() {
+      if (!this.shareCenter.message) {
+        alert('공유 메시지가 아직 준비되지 않았습니다.');
+        return;
+      }
+      if (!this.shareCenter.downloadPrepared) {
+        this.downloadShareImage();
+      }
+
+      const subject = encodeURIComponent('Workflow 이미지 공유');
+      const body = encodeURIComponent(`${this.shareCenter.message}
+
+※ PNG 파일이 다운로드 폴더에 저장되었습니다. 메일에 첨부해 주세요.`);
+
+      window.location.href = `mailto:?subject=${subject}&body=${body}`;
+      this.logAction('메일 공유 링크 실행');
+    },
+
+    /**
+     * 문자 메시지 공유 (모바일)
+     */
+    shareViaSMS() {
+      if (!this.shareCenter.message) {
+        alert('공유 메시지가 아직 준비되지 않았습니다.');
+        return;
+      }
+
+      const smsBody = encodeURIComponent(`${this.shareCenter.message}
+이미지 파일: ${this.shareCenter.filename}`);
+      try {
+        window.location.href = `sms:?body=${smsBody}`;
+        this.logAction('문자 메시지 공유 링크 실행');
+      } catch (error) {
+        console.warn('SMS 링크 실행 실패', error);
+        alert('문자 메시지 앱을 열 수 없습니다. 모바일 기기에서 다시 시도해 주세요.');
+      }
+    },
+
+    /**
+     * 카카오톡 공유 (메시지 복사 중심)
+     */
+    async shareViaKakao() {
+      if (!this.shareCenter.message) {
+        alert('공유 메시지가 아직 준비되지 않았습니다.');
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(`${this.shareCenter.message}
+이미지 파일: ${this.shareCenter.filename}`);
+        this.logAction('카카오톡 공유 메시지 복사 완료');
+        alert('메시지가 복사되었습니다. 카카오톡 대화창에서 붙여넣고 PNG 파일을 첨부해 주세요.');
+      } catch (error) {
+        console.error('카카오톡 공유 메시지 복사 실패:', error);
+        this.logAction(`카카오톡 공유 메시지 복사 실패: ${error.message}`);
+        alert('메시지 복사를 실패했습니다. 브라우저 권한을 확인해주세요.');
+      }
+    },
+
+    /**
+     * SNS 공유 (Twitter 등)
+     */
+    shareViaSNS() {
+      if (!this.shareCenter.message) {
+        alert('공유 메시지가 아직 준비되지 않았습니다.');
+        return;
+      }
+
+      const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(this.shareCenter.message)}`;
+      const popup = window.open(tweetUrl, '_blank', 'noopener,width=600,height=650');
+      if (popup) {
+        this.logAction('SNS 공유 창 열림');
+      } else {
+        this.logAction('SNS 공유 창 차단됨, 메시지 복사로 대체 안내');
+        alert('팝업이 차단되었습니다. 공유 메시지를 복사하여 SNS에 직접 붙여넣어 주세요.');
+      }
+    },
+
+    /**
+     * 현재 워크플로우 화면을 이미지로 저장
+     * html-to-image 라이브러리를 사용하여 DOM을 PNG 이미지로 변환 후 다운로드
+     */
+    async saveAsImage() {
+      if (!this.started) {
+        return;
+      }
+
+      this.logAction('이미지 저장 시작');
+
+      try {
+        const { dataUrl, filename } = await this.captureWorkflowImage();
+        this.triggerImageDownload(dataUrl, filename);
+        this.logAction(`이미지 저장 완료: ${filename}`);
+      } catch (error) {
+        console.error('이미지 저장 중 오류 발생:', error);
+        this.logAction(`이미지 저장 실패: ${error.message}`);
+        if (error.message === '캡처할 영역을 찾을 수 없습니다.') {
+          alert('캡처할 영역을 찾을 수 없습니다.');
+        } else {
+          alert('이미지 저장에 실패했습니다.');
+        }
+      }
+    },
+
     /**
      * 디버그 레이어 토글
      */
