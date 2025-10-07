@@ -250,6 +250,47 @@ body::before {
   width: 20px;
   height: 20px;
 }
+.toolbar__theme-tooltip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translate(-50%, 4px);
+  background: rgba(17, 24, 39, 0.92);
+  color: #f9fafb;
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.35);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  z-index: 40;
+}
+.toolbar__theme-tooltip::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px 6px 0 6px;
+  border-style: solid;
+  border-color: rgba(17, 24, 39, 0.92) transparent transparent transparent;
+}
+.toolbar__theme-button:focus-visible .toolbar__theme-tooltip,
+.toolbar__theme-button:hover .toolbar__theme-tooltip {
+  opacity: 1;
+  transform: translate(-50%, -4px);
+}
+.toolbar__theme-button--light .toolbar__theme-tooltip {
+  background: rgba(255, 255, 255, 0.94);
+  color: #111827;
+  box-shadow: 0 10px 26px rgba(253, 230, 138, 0.4);
+}
+.toolbar__theme-button--light .toolbar__theme-tooltip::before {
+  border-color: rgba(255, 255, 255, 0.94) transparent transparent transparent;
+}
 .toolbar__theme-button--light {
   background: linear-gradient(135deg, #fef3c7, #fde68a);
   color: #92400e;
@@ -1131,11 +1172,13 @@ body[data-theme="light"] .workflow-stage__step {
               <circle cx="12" cy="12" r="5" fill="currentColor" />
               <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
             </svg>
+            <span class="toolbar__theme-tooltip" aria-hidden="true">화이트 모드</span>
           </button>
           <button type="button" class="toolbar__theme-button toolbar__theme-button--dark" :class="{ 'is-active': theme === 'dark' }" @click="theme = 'dark'" aria-label="다크 테마">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor" />
             </svg>
+            <span class="toolbar__theme-tooltip" aria-hidden="true">다크 모드</span>
           </button>
         </div>
       </div>

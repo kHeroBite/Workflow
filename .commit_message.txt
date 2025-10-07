@@ -1,1 +1,1 @@
-﻿[코덱스] ♻️ workflowSteps 1~3단계 항목 단일라인 포맷 정리 - gpt-5-codex
+[코덱스] 💡 테마 토글 버튼 툴팁 추가 - gpt-5-codex
