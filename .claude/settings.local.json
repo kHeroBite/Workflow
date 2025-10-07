@@ -26,7 +26,9 @@
       "Bash(wc:*)",
       "Bash(head:*)",
       "Bash(cat:*)",
-      "Bash(LOG_FILE=\"/c/Users/rioky/AppData/Roaming/MARS/logs/20251004.log\")"
+      "Bash(LOG_FILE=\"/c/Users/rioky/AppData/Roaming/MARS/logs/20251004.log\")",
+      "Read(//c/Users/rioky/.config/**)",
+      "Read(//c/Users/rioky/AppData/Roaming/claude-code/**)"
     ],
     "deny": [],
     "ask": []

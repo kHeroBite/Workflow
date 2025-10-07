@@ -1317,76 +1317,96 @@ const workflowSteps = [
     id: 2,
     title: '요구사항분석(유형 분류)',
     items: [
-      { id: '2.1', label: '장애처리(Incident)', nextSteps: '3.1, 3.2, 3.3' },
-      { id: '2.2', label: '정기점검(PM)', nextSteps: '3.4, 3.5, 3.6' },
-      { id: '2.3', label: '질의응답(Q&A)', nextSteps: '4.1, 4.3' },
-      { id: '2.4', label: '업그레이드/패치', nextSteps: '3.7, 3.8, 3.9' },
-      { id: '2.5', label: '플랫폼 변경/이전', nextSteps: '3.10, 3.11, 3.12, 3.13' },
-      { id: '2.6', label: '기술지원(TSS) 요청', nextSteps: '3.14, 3.15, 3.16, 3.17' },
-      { id: '2.7', label: '추가/변경개발(CR/ADC)', nextSteps: '4.2, 4.3' },
-      { id: '2.8', label: '지식작업(KMA) 요청', nextSteps: '4.2, 4.3' },
-      { id: '2.9', label: '교육 지원', nextSteps: '4.2, 4.3' },
-      { id: '2.10', label: '차감형(SR) 요청', nextSteps: '4.2, 4.3' },
-      { id: '2.11', label: '운영(SM) 요청', nextSteps: '4.2, 4.3' },
-      { id: '2.99', label: '기타(판정 필요)', nextSteps: '4' }
+      { id: '2.1', label: '장애처리(Incident)', nextSteps: '4.1' },
+      { id: '2.2', label: '정기점검(PM)', nextSteps: '3.1, 3.2, 3.3' },
+      { id: '2.3', label: '질의응답(Q&A)', nextSteps: '4.1' },
+      { id: '2.4', label: '인증서 교체', nextSteps: '3.4, 3.5' },
+      { id: '2.5', label: '업그레이드/패치(애플리케이션)', nextSteps: '3.6, 3.7' },
+      { id: '2.6', label: '메이저 업그레이드(버전 상향)', nextSteps: '4.2' },
+      { id: '2.7', label: '플랫폼 변경/이전', nextSteps: '3.8, 3.9, 3.10' },
+      { id: '2.8', label: 'TSS(기술지원) 요청', nextSteps: '3.11, 3.12' },
+      { id: '2.9', label: 'SR(차감형) 요청', nextSteps: '4.2' },
+      { id: '2.10', label: 'SM(운영) 요청', nextSteps: '4.2' },
+      { id: '2.11', label: 'CR/ADC(추가/변경개발)', nextSteps: '4.2' },
+      { id: '2.12', label: 'KMA 지식작업', nextSteps: '4.2' },
+      { id: '2.13', label: '교육 지원', nextSteps: '4.2' },
+      { id: '2.14', label: '색인/학습 작업', nextSteps: '4.2' },
+      { id: '2.15', label: '모니터링/헬프데스크 등록·정리', nextSteps: '4.1' },
+      { id: '2.99', label: '기타(판정 필요)', nextSteps: '4.1' }
     ]
   },
   {
     id: 3,
     title: '세부유형(소분류)',
     items: [
-      { id: '3.1', label: '서비스전체불능', nextSteps: '4.1, 4.3' },
-      { id: '3.2', label: '서비스부분불능', nextSteps: '4.1, 4.3' },
-      { id: '3.3', label: '일부기능불능', nextSteps: '4.2, 4.3' },
-      { id: '3.4', label: 'PM-원격', nextSteps: '4.1, 4.3' },
-      { id: '3.5', label: 'PM-방문(수도권)', nextSteps: '4.1, 4.3' },
-      { id: '3.6', label: 'PM-방문(비수도권)', nextSteps: '4.1, 4.3' },
-      { id: '3.7', label: '메이저 업그레이드', nextSteps: '4.2, 4.3' },
-      { id: '3.8', label: '마이너 업그레이드', nextSteps: '4.1, 4.3' },
-      { id: '3.9', label: '릴리즈 업데이트/패치', nextSteps: '4.1, 4.3' },
-      { id: '3.10', label: '서버 증설', nextSteps: '4.2, 4.3' },
-      { id: '3.11', label: '서버 이전', nextSteps: '4.2, 4.3' },
-      { id: '3.12', label: 'OS 업그레이드', nextSteps: '4.2, 4.3' },
-      { id: '3.13', label: 'DB 업그레이드/이전', nextSteps: '4.2, 4.3' },
-      { id: '3.14', label: '취약점/보안 패치', nextSteps: '4.2, 4.3' },
-      { id: '3.15', label: '인증서 교체', nextSteps: '4.2, 4.3' },
-      { id: '3.16', label: '색인/학습 작업', nextSteps: '4.2' },
-      { id: '3.17', label: '모니터링', nextSteps: '4.2' },
-      { id: '3.99', label: '기타(판정 필요)', nextSteps: '4' },
+      { id: '3.1', label: 'PM-원격', nextSteps: '4.1' },
+      { id: '3.2', label: 'PM-방문(수도권)', nextSteps: '4.1' },
+      { id: '3.3', label: 'PM-방문(비수도권)', nextSteps: '4.1' },
+      { id: '3.4', label: '인증서 교체-일반시간', nextSteps: '4.1' },
+      { id: '3.5', label: '인증서 교체-야간/주말', nextSteps: '4.2' },
+      { id: '3.6', label: '마이너 업그레이드/기능패치', nextSteps: '4.1' },
+      { id: '3.7', label: '취약점/보안 패치', nextSteps: '4.2' },
+      { id: '3.8', label: 'OS 업그레이드', nextSteps: '4.2' },
+      { id: '3.9', label: '서버 증설·이전', nextSteps: '4.2' },
+      { id: '3.10', label: 'DB 업그레이드·이전', nextSteps: '4.2' },
+      { id: '3.11', label: 'TSS-일반시간', nextSteps: '4.2' },
+      { id: '3.12', label: 'TSS-야간/주말', nextSteps: '4.2' }
     ]
   },
   {
     id: 4,
     title: '유무상 결정',
     items: [
-      { id: '4.1', label: '무상(하자보수中/유지보수계약中)', nextSteps: '5.1, 5.2, 5.3' },
+      { id: '4.1', label: '무상(하자보수/계약내)', nextSteps: '5.1, 5.2, 5.3' },
       { id: '4.2', label: '유상(계약외/선택형)', nextSteps: '5.1, 5.2, 5.3, 5.4' },
       { id: '4.3', label: '계약 확인 필요(미계약/만료/EOL/EOS)', nextSteps: '5.4' },
+      { id: '4.4', label: 'EOL/EOS 해당(업그레이드 권고)', nextSteps: '5.4' }
     ]
   },
   {
     id: 5,
     title: '작업방식/승인 및 배정',
     items: [
-      { id: '5.1', label: '담당자 직접 처리', nextSteps: '7' },
-      { id: '5.2', label: '팀내 처리(팀장보고)', nextSteps: '6.1' },
-      { id: '5.3', label: '타부서 지원 요청(본부장보고)', nextSteps: '6.2' },
-      { id: '5.4', label: '영업대표 전달(견적/계약)', nextSteps: '6' },
+      { id: '5.1', label: '담당자 직접 처리', nextSteps: '9' },
+      { id: '5.2', label: '내부 처리(팀장보고)', nextSteps: '6.1' },
+      { id: '5.3', label: '지원 요청(본부장보고)', nextSteps: '6.2' },
+      { id: '5.4', label: '영업대표 전달(견적/계약)', nextSteps: '6.3' },
+      { id: '5.5', label: '고객 승인(다운타임/보안 등)', nextSteps: '6.1, 6.2, 6.3' },
+      { id: '5.6', label: '휴일/야간 승인(최소 5영업일 전 접수)', nextSteps: '6.1, 6.2, 6.3' },
+      { id: '5.7', label: '변경관리(CAB) 승인', nextSteps: '6.1, 6.2, 6.3' }
     ]
   },
   {
     id: 6,
-    title: '영업활동 후 작업 채널 구분',
+    title: '작업 채널 구분',
     items: [
-      { id: '6.1', label: '내부 처리(본부내부)', nextSteps: '7' },
-      { id: '6.2', label: '외부 지원(타본부/파트너/벤더)', nextSteps: '7' }
+      { id: '6.1', label: '내부 처리(엔지니어 수행)', nextSteps: '9' },
+      { id: '6.2', label: '외부 지원(본사/파트너/벤더)', nextSteps: '9' },
+      { id: '6.3', label: '영업 프로세스(견적/계약/PO)', nextSteps: '7.1, 7.2, 7.3' }
     ]
   },
   {
     id: 7,
+    title: '재협의 후 작업방식 결정',
+    items: [
+      { id: '7.1', label: '담당자 직접 처리', nextSteps: '9' },
+      { id: '7.2', label: '내부 처리(팀장보고)', nextSteps: '8.1' },
+      { id: '7.3', label: '지원 요청(본부장보고)', nextSteps: '8.2' }
+    ]
+  },
+  {
+    id: 8,
+    title: '재협의 후 작업 채널 구분',
+    items: [
+      { id: '8.1', label: '내부 처리(엔지니어 수행)', nextSteps: '9' },
+      { id: '8.2', label: '외부 지원(본사/파트너/벤더)', nextSteps: '9' }
+    ]
+  },
+  {
+    id: 9,
     title: '완료(리포트/이력 저장)',
     items: [
-      { id: '7.1', label: '완료', nextSteps: '' }
+      { id: '9.1', label: '완료', nextSteps: '' }
     ]
   }
 ];

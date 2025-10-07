@@ -196,11 +196,13 @@ if context_tokens is not None and context_tokens > 0:
     # 컨텍스트 토큰 10% 보정 및 시스템 사용량 10% 차감
     free_pct = ((200000 - (context_tokens * 1.1)) / 200000) * 100
     free_pct = max(0, free_pct - 10)
-    # 20% 이하일 경우 아주 밝은 핫핑크로 경고
-    if free_pct <= 20:
-        context_str = f"\033[38;2;255;105;180m{free_pct:.1f}%\033[0m"  # 아주 밝은 핫핑크 RGB(255, 105, 180)
+    # 색상 결정: 50% 이상 = 흰색, 50%~20% = 옥색, 20% 이하 = 핫핑크
+    if free_pct > 50:
+        context_str = f"\033[97m{free_pct:.1f}%\033[0m"  # 흰색 (밝은 흰색)
+    elif free_pct > 20:
+        context_str = f"\033[96m{free_pct:.1f}%\033[0m"  # 옥색 (시안)
     else:
-        context_str = f"\033[96m{free_pct:.1f}%\033[0m"  # 프로젝트명과 동일한 시안 색상
+        context_str = f"\033[38;2;255;105;180m{free_pct:.1f}%\033[0m"  # 핫핑크 RGB(255, 105, 180)
 
 # --- 출력 ---
 # 시간 문자열 (회색)
