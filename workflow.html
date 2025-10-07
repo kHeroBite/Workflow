@@ -1197,6 +1197,12 @@ body[data-theme="light"] .workflow-stage__step {
           <path d="M21 15l-5-5L5 21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
       </button>
+      <button type="button" class="toolbar__button toolbar__button--icon-only has-tooltip" id="shareEmail" aria-label="이메일로 보내기" data-tooltip="이메일로 보내기" @click="shareImageByEmail" :disabled="!started">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 4h16a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+          <polyline points="4,6 12,12 20,6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
       <div class="toolbar__zoom-slider">
         <div class="zoom-slider-wrapper" @click="handleSliderMarkerClick" @wheel="handleSliderWheel">
           <div class="zoom-slider-marker"></div>
@@ -2529,6 +2535,48 @@ Vue.createApp({
       });
     },
     /**
+     * 워크플로우 화면을 PNG 데이터 URL과 파일명으로 준비
+     * @returns {{ dataUrl: string, filename: string }}
+     */
+    async captureWorkflowImage() {
+      if (!this.started) {
+        throw new Error('워크플로우가 아직 시작되지 않았습니다.');
+      }
+
+      const stageList = this.$refs.stageListWrapper;
+      if (!stageList) {
+        throw new Error('캡처할 영역을 찾을 수 없습니다.');
+      }
+
+      const dataUrl = await htmlToImage.toPng(stageList, {
+        backgroundColor: null,
+        pixelRatio: 2,
+        cacheBust: true,
+        style: {
+          margin: '0',
+          padding: '20px',
+        }
+      });
+
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+      const filename = `workflow-${timestamp}.png`;
+
+      return { dataUrl, filename };
+    },
+
+    /**
+     * PNG 데이터를 파일로 다운로드
+     * @param {string} dataUrl
+     * @param {string} filename
+     */
+    triggerImageDownload(dataUrl, filename) {
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = dataUrl;
+      link.click();
+    },
+
+    /**
      * 현재 워크플로우 화면을 이미지로 저장
      * html-to-image 라이브러리를 사용하여 DOM을 PNG 이미지로 변환 후 다운로드
      */
@@ -2540,36 +2588,84 @@ Vue.createApp({
       this.logAction('이미지 저장 시작');
 
       try {
-        // 워크플로우 단계 리스트 영역을 캡처
-        const stageList = this.$refs.stageListWrapper;
-        if (!stageList) {
-          alert('캡처할 영역을 찾을 수 없습니다.');
-          return;
-        }
-
-        // html-to-image로 DOM을 PNG 데이터 URL로 변환
-        const dataUrl = await htmlToImage.toPng(stageList, {
-          backgroundColor: null, // 투명 배경
-          pixelRatio: 2, // 고해상도 (Retina 디스플레이 대응)
-          cacheBust: true, // 캐시 방지
-          style: {
-            margin: '0',
-            padding: '20px', // 여유 공간
-          }
-        });
-
-        // 다운로드 링크 생성
-        const link = document.createElement('a');
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-        link.download = `workflow-${timestamp}.png`;
-        link.href = dataUrl;
-        link.click();
-
-        this.logAction(`이미지 저장 완료: workflow-${timestamp}.png`);
+        const { dataUrl, filename } = await this.captureWorkflowImage();
+        this.triggerImageDownload(dataUrl, filename);
+        this.logAction(`이미지 저장 완료: ${filename}`);
       } catch (error) {
         console.error('이미지 저장 중 오류 발생:', error);
         this.logAction(`이미지 저장 실패: ${error.message}`);
-        alert('이미지 저장에 실패했습니다.');
+        if (error.message === '캡처할 영역을 찾을 수 없습니다.') {
+          alert('캡처할 영역을 찾을 수 없습니다.');
+        } else {
+          alert('이미지 저장에 실패했습니다.');
+        }
+      }
+    },
+
+    /**
+     * 워크플로우 이미지를 이메일로 공유
+     * Web Share API 지원 시 파일을 직접 공유하고, 미지원 시 mailto 링크로 안내
+     */
+    async shareImageByEmail() {
+      if (!this.started) {
+        return;
+      }
+
+      this.logAction('이미지 이메일 공유 준비 시작');
+
+      try {
+        const { dataUrl, filename } = await this.captureWorkflowImage();
+
+        let sharedViaShareApi = false;
+        if (
+          typeof navigator !== 'undefined' &&
+          typeof navigator.share === 'function' &&
+          typeof navigator.canShare === 'function' &&
+          typeof File === 'function'
+        ) {
+          try {
+            const blob = await (await fetch(dataUrl)).blob();
+            const file = new File([blob], filename, { type: 'image/png' });
+
+            if (navigator.canShare({ files: [file] })) {
+              await navigator.share({
+                files: [file],
+                title: 'Workflow 이미지 공유',
+                text: '워크플로우 이미지 스냅샷을 공유합니다.'
+              });
+              this.logAction(`이미지 이메일 공유 완료(공유 API): ${filename}`);
+              sharedViaShareApi = true;
+            }
+          } catch (shareError) {
+            console.warn('공유 API 사용 실패, mailto로 폴백합니다.', shareError);
+          }
+        }
+
+        if (sharedViaShareApi) {
+          return;
+        }
+
+        this.triggerImageDownload(dataUrl, filename);
+
+        const subject = encodeURIComponent('Workflow 이미지 공유');
+        const bodyLines = [
+          '워크플로우 이미지 파일이 다운로드되었습니다.',
+          `${filename} 파일을 메일에 첨부하여 공유해주세요.`,
+          '',
+          '※ 브라우저가 메일 앱을 자동으로 열지 않으면 수동으로 파일을 첨부해 주세요.'
+        ];
+        const body = encodeURIComponent(bodyLines.join('\r\n'));
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+
+        this.logAction(`메일 작성 창 열림: ${filename}`);
+      } catch (error) {
+        console.error('이미지 이메일 공유 실패:', error);
+        this.logAction(`이미지 이메일 공유 실패: ${error.message}`);
+        if (error.message === '캡처할 영역을 찾을 수 없습니다.') {
+          alert('캡처할 영역을 찾을 수 없습니다.');
+        } else {
+          alert('이메일로 이미지를 준비하는 동안 오류가 발생했습니다.');
+        }
       }
     },
     /**
