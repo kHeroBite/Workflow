@@ -363,6 +363,53 @@ This is a **maintenance workflow simulation application** built as a single-page
       - 스크롤 (0, 0)
       - 디버그 로그 기록
     호출빈도: 처음으로_버튼_클릭_시
+
+  - 함수명: shareWorkflow()
+    역할: 워크플로우 이미지 공유 준비
+    동작:
+      - captureWorkflowImage()로 PNG 생성
+      - tryShareWithNativeAPI()로 Web Share API 시도
+      - 실패 시 공유 센터 열기
+      - shareCenter.dataUrl, filename, message 설정
+    호출빈도: 공유_버튼_클릭_시
+    위치: workflow.html:2801
+
+  - 함수명: shareViaEmail()
+    역할: 메일 공유 (Web Share API 우선 시도)
+    동작:
+      - Web Share API 지원 확인
+      - 지원 시: dataUrl → Blob → File 변환 후 navigator.share()
+      - 미지원 시: downloadShareImage() + mailto: 링크
+      - mailto: 본문에 "수동으로 첨부" 안내 포함
+    호출빈도: 공유_센터_메일_버튼_클릭_시
+    위치: workflow.html:2967
+    async: true (비동기 함수)
+    개선사항:
+      - Web Share API로 이미지 자동 첨부 시도
+      - 폴백 메시지 "수동으로 첨부" 명확화
+
+  - 함수명: handleShareTarget(targetId)
+    역할: 공유 대상별 액션 분기
+    매개변수:
+      - targetId: 'email' | 'kakao' | 'sms' | 'sns'
+    동작:
+      - email: shareViaEmail() 호출
+      - kakao: shareViaKakao() 호출 (메시지 복사)
+      - sms: shareViaSMS() 호출 (sms: 프로토콜)
+      - sns: shareViaSNS() 호출 (Twitter 공유)
+    호출빈도: 공유_센터_옵션_클릭_시
+    위치: workflow.html:2945
+
+  - 함수명: buildShareMessage(filename)
+    역할: 공유 메시지 생성
+    매개변수:
+      - filename: PNG 파일명
+    반환값: 공유용 텍스트 메시지 (줄바꿈 포함)
+    내용:
+      - "Workflow 시뮬레이션 이미지를 공유합니다."
+      - 파일명, 현재 단계, 선택 개수, 타임스탬프
+    호출빈도: shareWorkflow() 내부
+    위치: workflow.html:2879
 ```
 
 ## 📊 데이터 구조
@@ -422,6 +469,39 @@ data() {
     // ... 기타 상태들
   }
 }
+
+// 공유 센터 상태
+shareCenter = {
+  visible: false,                 // 공유 센터 표시 여부
+  dataUrl: '',                    // PNG 이미지 데이터 URL
+  filename: '',                   // PNG 파일명 (workflow-timestamp.png)
+  message: '',                    // 공유 메시지 텍스트
+  downloadPrepared: false         // 이미지 다운로드 완료 여부
+}
+
+// 공유 대상 목록
+shareTargets = [
+  {
+    id: 'email',
+    label: '메일 보내기',
+    description: '이미지와 메시지를 메일로 공유 (지원 시 자동 첨부, 미지원 시 수동 첨부)'
+  },
+  {
+    id: 'kakao',
+    label: '카카오톡',
+    description: '메시지를 복사해 카카오톡 대화창에 붙여넣고 이미지 첨부'
+  },
+  {
+    id: 'sms',
+    label: '문자 메시지',
+    description: '모바일 문자 앱에서 메시지와 이미지 공유'
+  },
+  {
+    id: 'sns',
+    label: 'SNS 공유',
+    description: 'Twitter 등 SNS 공유 창 열기 또는 메시지 복사'
+  }
+]
 ```
 
 ## 💬 툴팁 시스템

@@ -1646,10 +1646,10 @@ Vue.createApp({
         downloadPrepared: false
       },
       shareTargets: [
-        { id: 'email', label: '메일 보내기', description: '메일 클라이언트를 열어 이미지와 메시지를 첨부' },
-        { id: 'kakao', label: '카카오톡', description: '메시지를 복사해 카카오톡 대화창에 붙여넣기' },
-        { id: 'sms', label: '문자 메시지', description: '모바일 문자 앱에서 공유 메시지로 전송' },
-        { id: 'sns', label: 'SNS 공유', description: 'SNS 공유 창을 열거나 메시지를 복사하여 활용' }
+        { id: 'email', label: '메일 보내기', description: '이미지와 메시지를 메일로 공유 (지원 시 자동 첨부, 미지원 시 수동 첨부)' },
+        { id: 'kakao', label: '카카오톡', description: '메시지를 복사해 카카오톡 대화창에 붙여넣고 이미지 첨부' },
+        { id: 'sms', label: '문자 메시지', description: '모바일 문자 앱에서 메시지와 이미지 공유' },
+        { id: 'sns', label: 'SNS 공유', description: 'Twitter 등 SNS 공유 창 열기 또는 메시지 복사' }
       ],
       // 진행도 계산을 위한 최대 예상 단계 수 (절대 줄어들지 않음)
       maxExpectedSteps: 9,
@@ -2962,13 +2962,36 @@ Vue.createApp({
     },
 
     /**
-     * 메일 공유
+     * 메일 공유 (Web Share API 우선 시도)
      */
-    shareViaEmail() {
-      if (!this.shareCenter.message) {
+    async shareViaEmail() {
+      if (!this.shareCenter.message || !this.shareCenter.dataUrl || !this.shareCenter.filename) {
         alert('공유 메시지가 아직 준비되지 않았습니다.');
         return;
       }
+
+      // Web Share API로 이미지 첨부 시도
+      if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+        try {
+          const blob = await (await fetch(this.shareCenter.dataUrl)).blob();
+          const file = new File([blob], this.shareCenter.filename, { type: 'image/png' });
+
+          if (typeof navigator.canShare !== 'function' || navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: 'Workflow 이미지 공유',
+              text: this.shareCenter.message
+            });
+            this.logAction('메일 공유 완료 (Web Share API, 이미지 첨부됨)');
+            return;
+          }
+        } catch (error) {
+          console.warn('Web Share API 파일 공유 실패, 기존 방식으로 폴백:', error);
+          this.logAction(`Web Share API 실패: ${error.message}, mailto 폴백`);
+        }
+      }
+
+      // 폴백: 기존 mailto 방식 (이미지 수동 첨부)
       if (!this.shareCenter.downloadPrepared) {
         this.downloadShareImage();
       }
@@ -2977,12 +3000,12 @@ Vue.createApp({
       const bodyLines = [
         this.shareCenter.message,
         '',
-        '※ PNG 파일이 다운로드 폴더에 저장되었습니다. 메일에 첨부해 주세요.'
+        '※ PNG 파일이 다운로드 폴더에 저장되었습니다. 메일에 수동으로 첨부해 주세요.'
       ];
       const body = encodeURIComponent(bodyLines.join('\n'));
 
       window.location.href = `mailto:?subject=${subject}&body=${body}`;
-      this.logAction('메일 공유 링크 실행');
+      this.logAction('메일 공유 링크 실행 (mailto, 수동 첨부 필요)');
     },
 
     /**
