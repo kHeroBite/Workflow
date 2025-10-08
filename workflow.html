@@ -2967,24 +2967,23 @@ Vue.createApp({
      */
     shareViaEmail() {
       if (!this.shareCenter.message) {
-        alert('ê³µì  ë©ìì§ê° ìì§ ì¤ë¹ëì§ ìììµëë¤.');
+        alert('공유 메시지가 아직 준비되지 않았습니다.');
         return;
       }
       if (!this.shareCenter.downloadPrepared) {
         this.downloadShareImage();
       }
 
-      const subject = encodeURIComponent('Workflow ì´ë¯¸ì§ ê³µì ');
+      const subject = encodeURIComponent('Workflow 이미지 공유');
       const bodyLines = [
         this.shareCenter.message,
         '',
-        'â» PNG íì¼ì´ ë¤ì´ë¡ë í´ëì ì ì¥ëììµëë¤. ë©ì¼ì ì²¨ë¶í´ ì£¼ì¸ì.'
+        '※ PNG 파일이 다운로드 폴더에 저장되었습니다. 메일에 첨부해 주세요.'
       ];
-      const body = encodeURIComponent(bodyLines.join('
-'));
+      const body = encodeURIComponent(bodyLines.join('\n'));
 
       window.location.href = `mailto:?subject=${subject}&body=${body}`;
-      this.logAction('ë©ì¼ ê³µì  ë§í¬ ì¤í');
+      this.logAction('메일 공유 링크 실행');
     },
 
     /**
@@ -2992,22 +2991,21 @@ Vue.createApp({
      */
     shareViaSMS() {
       if (!this.shareCenter.message) {
-        alert('ê³µì  ë©ìì§ê° ìì§ ì¤ë¹ëì§ ìììµëë¤.');
+        alert('공유 메시지가 아직 준비되지 않았습니다.');
         return;
       }
 
       const smsLines = [
         this.shareCenter.message,
-        `ì´ë¯¸ì§ íì¼: ${this.shareCenter.filename}`
+        `이미지 파일: ${this.shareCenter.filename}`
       ];
-      const smsBody = encodeURIComponent(smsLines.join('
-'));
+      const smsBody = encodeURIComponent(smsLines.join('\n'));
       try {
         window.location.href = `sms:?body=${smsBody}`;
-        this.logAction('ë¬¸ì ë©ìì§ ê³µì  ë§í¬ ì¤í');
+        this.logAction('문자 메시지 공유 링크 실행');
       } catch (error) {
-        console.warn('SMS ë§í¬ ì¤í ì¤í¨', error);
-        alert('ë¬¸ì ë©ìì§ ì±ì ì´ ì ììµëë¤. ëª¨ë°ì¼ ê¸°ê¸°ìì ë¤ì ìëí´ ì£¼ì¸ì.');
+        console.warn('SMS 링크 실행 실패', error);
+        alert('문자 메시지 앱을 열 수 없습니다. 모바일 기기에서 다시 시도해 주세요.');
       }
     },
 
@@ -3016,23 +3014,22 @@ Vue.createApp({
      */
     async shareViaKakao() {
       if (!this.shareCenter.message) {
-        alert('ê³µì  ë©ìì§ê° ìì§ ì¤ë¹ëì§ ìììµëë¤.');
+        alert('공유 메시지가 아직 준비되지 않았습니다.');
         return;
       }
 
       try {
         const kakaoLines = [
           this.shareCenter.message,
-          `ì´ë¯¸ì§ íì¼: ${this.shareCenter.filename}`
+          `이미지 파일: ${this.shareCenter.filename}`
         ];
-        await navigator.clipboard.writeText(kakaoLines.join('
-'));
-        this.logAction('ì¹´ì¹´ì¤í¡ ê³µì  ë©ìì§ ë³µì¬ ìë£');
-        alert('ë©ìì§ê° ë³µì¬ëììµëë¤. ì¹´ì¹´ì¤í¡ ëíì°½ìì d99ì¬ë£ê³  PNG íì¼ì \cca8ë¶í´ ì£¼ì¸ì.');
+        await navigator.clipboard.writeText(kakaoLines.join('\n'));
+        this.logAction('카카오톡 공유 메시지 복사 완료');
+        alert('메시지가 복사되었습니다. 카카오톡 대화창에서 붙여넣고 PNG 파일을 첨부해 주세요.');
       } catch (error) {
-        console.error('ì¹´ì¹´ì¤í¡ ê³µì  ë©ìì§ ë³µì¬ ì¤í¨:', error);
-        this.logAction(`ì¹´ì¹´ì¤í¡ ê³µì  ë©ìì§ ë³µì¬ ì¤í¨: ${error.message}`);
-        alert('ë©ìì§ ë³µì¬ë¥¼ ì¤í¨íìµëë¤. ë¸ë¼ì°ì  ê¶íì íì¸í´ì£¼ì¸ì.');
+        console.error('카카오톡 공유 메시지 복사 실패:', error);
+        this.logAction(`카카오톡 공유 메시지 복사 실패: ${error.message}`);
+        alert('메시지 복사를 실패했습니다. 브라우저 권한을 확인해주세요.');
       }
     },
 
@@ -3155,4 +3152,3 @@ Vue.createApp({
 </script>
 </body>
 </html>
-
