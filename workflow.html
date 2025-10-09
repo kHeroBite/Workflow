@@ -1752,8 +1752,8 @@ Vue.createApp({
       // 마지막 표시된 단계 확인
       const lastStage = this.visibleStages[this.visibleStages.length - 1];
 
-      // 9단계(완료)에 도달했으면 현재까지의 단계 수가 최대
-      if (lastStage.stage.id === 9) {
+      // 7단계(완료)에 도달했으면 현재까지의 단계 수가 최대
+      if (lastStage.stage.id === 7) {
         const finalSteps = this.visibleStages.length;
         // 최종 단계에 도달하면 maxExpectedSteps를 업데이트하지 않음 (이미 완료)
         return finalSteps;
@@ -1935,27 +1935,25 @@ Vue.createApp({
     },
 
     /**
-     * 주어진 단계 ID에서 완료(9단계)까지의 최대 거리 계산
+     * 주어진 단계 ID에서 완료(7단계)까지의 최대 거리 계산
      * @param {number} stageId - 단계 ID
      * @returns {number} 완료까지의 최대 거리
      */
     calculateMaxDistanceToCompletion(stageId) {
-      // 이미 9단계(완료)면 1 (자기 자신만)
-      if (stageId === 9) {
+      // 이미 7단계(완료)면 1 (자기 자신만)
+      if (stageId === 7) {
         return 1;
       }
 
       // 단계별 최대 거리 매핑 (미리 계산된 값)
       const maxDistanceMap = {
-        1: 5, // 1→2→4→5.1→9 (최소 5단계)
-        2: 4, // 2→4→5.1→9 (최소 4단계)
-        3: 4, // 3→4→5.1→9 (최소 4단계)
-        4: 3, // 4→5.1→9 (최소 3단계)
-        5: 5, // 5→6→7→8→9 (최대 5단계)
-        6: 4, // 6→7→8→9 (최대 4단계)
-        7: 3, // 7→8→9 (최대 3단계)
-        8: 2, // 8→9 (최대 2단계)
-        9: 1  // 9 (완료)
+        1: 5, // 1→2→4→5.1→7 (최소 5단계)
+        2: 4, // 2→4→5.1→7 (최소 4단계)
+        3: 4, // 3→4→5.1→7 (최소 4단계)
+        4: 3, // 4→5.1→7 (최소 3단계)
+        5: 3, // 5→6→7 (최대 3단계)
+        6: 2, // 6→7 (최대 2단계)
+        7: 1  // 7 (완료)
       };
 
       return maxDistanceMap[stageId] || 1;
@@ -2807,6 +2805,8 @@ Vue.createApp({
       }
 
       const lines = [];
+      lines.push('');  // 빈 줄 1 (서명과 구분)
+      lines.push('');  // 빈 줄 2 (서명과 구분)
       lines.push('━'.repeat(50));
       lines.push('워크플로우 진행 내역');
       lines.push('━'.repeat(50));
