@@ -1,1 +1,1 @@
-[커서] 📏 단계 너비 410px → 380px로 조정 - 좌우 균형 맞춤 by claude-sonnet-4-5
+[커서] 📏 단계 너비 380px → 400px로 조정 - 우측 여백 확보 by claude-sonnet-4-5
