@@ -1,1 +1,1 @@
-[커서] 📏 단계 너비 410px → 420px로 추가 조정 - 우측 여백 확보 by claude-sonnet-4-5
+[커서] 🔧 CSS width: fit-content → auto 변경 및 workflow-canvas clamp() 제거 - JavaScript 고정 너비 적용 보장 by claude-sonnet-4-5
