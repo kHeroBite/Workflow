@@ -1,1 +1,1 @@
-[커서] 📏 단계 너비 402px → 404px로 미세 조정 - 우측 여백 최적화 by claude-sonnet-4-5
+[커서] 🔧 CSS 패딩 고정값 적용 - clamp() 함수 제거로 브라우저 크기 무관하게 우측 여백 고정 by claude-sonnet-4-5
