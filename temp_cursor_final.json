@@ -1,1 +1,1 @@
-{"topic":"Workflow","title":"[커서] 작업 완료","message":"작업 요약: 이미지 저장 우측 여백 5px 축소 적용 및 렌더링 테스트 통과\n\n커밋 내역:\n- [커서] 🖼️ 이미지 저장 우측 여백 5px 축소(우측 마진 -5px) by gpt-5","priority":4,"tags":["checkmark","AI","chatGPT","deep think","complete"]}
+{"topic":"Workflow","title":"[테스트] 한글 인코딩 테스트","message":"안녕하세요! 🎉\n\n이 메시지는 한글 인코딩 테스트입니다.\n\n특수문자: ★☆♥♡\n이모지: 🚀🎨✨💻\n한글: 가나다라마바사아자차카타파하\n\n정상적으로 표시되면 성공입니다! ✅","priority":3,"tags":["white_check_mark","test","한글"]}

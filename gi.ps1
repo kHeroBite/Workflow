@@ -9,7 +9,7 @@ Write-Host '==================================================' -ForegroundColor
 Write-Host ''
 
 # Get reflog entries
-$raw = git reflog --date=iso --format='%h|%gd|%cd|%gs' | Select-Object -First 50
+$raw = git reflog --date=iso --format='%h|%gd|%cd|%gs' | Select-Object -First 10
 
 if(-not $raw) {
   Write-Host '[INFO] No reflog entries found.' -ForegroundColor Yellow

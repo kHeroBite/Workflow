@@ -1,1 +1,1 @@
-[커서] 📝 AGENTS.md 및 CLAUDE.md에 ntfy 한글 인코딩 해결 방법 명시 (BOM 제거 필수) by gpt-5
+[커서] 🔧 git history 표시 개수 10개로 제한 by claude-sonnet-4-5
