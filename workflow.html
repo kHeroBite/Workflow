@@ -2880,23 +2880,46 @@ Vue.createApp({
         throw new Error('캡처할 영역을 찾을 수 없습니다.');
       }
 
+      // 캡처 전에 뷰포트 스크롤을 왼쪽 상단으로 리셋
+      const viewport = this.$refs.workflowViewport;
+      const originalScrollLeft = viewport ? viewport.scrollLeft : 0;
+      const originalScrollTop = viewport ? viewport.scrollTop : 0;
+      
+      if (viewport) {
+        viewport.scrollTo({ left: 0, top: 0, behavior: 'instant' });
+      }
+
+      // 전체 영역의 실제 크기 측정
+      const fullWidth = stageList.scrollWidth;
+      const fullHeight = stageList.scrollHeight;
+
       // 테마에 맞는 배경색 설정
       const backgroundColor = this.theme === 'dark' ? '#0a0a0a' : '#f8fafc';
 
-      const dataUrl = await htmlToImage.toPng(stageList, {
-        backgroundColor: backgroundColor,
-        pixelRatio: 2,
-        cacheBust: true,
-        style: {
-          margin: '0',
-          padding: '20px',
+      try {
+        const dataUrl = await htmlToImage.toPng(stageList, {
+          backgroundColor: backgroundColor,
+          pixelRatio: 2,
+          cacheBust: true,
+          width: fullWidth,
+          height: fullHeight,
+          style: {
+            margin: '0',
+            padding: '20px',
+            transform: 'none', // 스케일 변환 무시
+          }
+        });
+
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+        const filename = `workflow-${timestamp}.png`;
+
+        return { dataUrl, filename };
+      } finally {
+        // 캡처 후 원래 스크롤 위치로 복원
+        if (viewport) {
+          viewport.scrollTo({ left: originalScrollLeft, top: originalScrollTop, behavior: 'instant' });
         }
-      });
-
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-      const filename = `workflow-${timestamp}.png`;
-
-      return { dataUrl, filename };
+      }
     },
 
     /**

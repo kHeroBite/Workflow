@@ -1,0 +1,8 @@
+{
+  "topic": "Workflow",
+  "title": "[커서] 작업 완료",
+  "message": "이미지 저장 배경색 문제를 해결했습니다! 🎨\n\n작업 요약:\n- 다크모드: #0a0a0a 배경색 적용\n- 라이트모드: #f8fafc 배경색 적용\n- 중복된 saveAsImage() 함수 제거\n- 테마별 backgroundColor 동적 설정\n\n커밋 내역:\n- [커서] 🎨 이미지 저장 시 테마별 배경색 적용 및 중복 함수 제거\n\n이제 다크모드에서 이미지를 저장하면 검정 배경으로, 라이트모드에서는 흰색 배경으로 정상 저장됩니다! ✅",
+  "priority": 4,
+  "tags": ["checkmark", "AI", "Cursor", "complete", "테마", "이미지"]
+}
+
