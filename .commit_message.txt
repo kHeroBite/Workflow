@@ -1,1 +1,1 @@
-[커서] 🔧 CSS width: fit-content → auto 변경 및 workflow-canvas clamp() 제거 - JavaScript 고정 너비 적용 보장 by claude-sonnet-4-5
+[커서] 📏 단계 박스 너비 500px → 333px로 2/3 수준 축소 - 컴팩트한 UI by claude-sonnet-4-5
