@@ -30,10 +30,14 @@
   3_커밋_준비:
     파일: .commit_message.txt
     형식: "[커서] {설명} by {modelId}"
-    인코딩: UTF-8
+    인코딩: UTF-8 (BOM 없음)
     순서:
       - Read .commit_message.txt
       - Edit .commit_message.txt (기존 내용 덮어쓰기)
+    한글_인코딩_주의사항:
+      - gpt-5 모델 사용 시 PowerShell 인코딩 문제 발생
+      - 해결책: cmd /c "echo 메시지 > .commit_message.txt" 사용
+      - 또는 git commit -m "메시지" 직접 사용
 
   4_git_작업:
     원격_저장소: https://github.com/kHeroBite/Workflow.git
