@@ -63,14 +63,26 @@
     실행_시점: 모든_작업_완료_직전
     한글_인코딩_보장:
       - PowerShell Invoke-RestMethod는 한글 깨짐 발생
-      - 해결: bash + curl 사용 (Git Bash 포함됨)
-    명령어: |
-      # 1. write 도구로 temp_cursor_final.json 파일 생성 (UTF-8)
-      #    내용: { "topic": "Workflow", "title": "[커서] 작업 완료", "message": "...", "priority": 4, "tags": [...] }
-      # 2. curl로 전송
-      bash -c "curl -H 'Content-Type: application/json; charset=utf-8' --data-binary @temp_cursor_final.json https://ntfy.sh"
-      # 3. 정리
-      Remove-Item -Force temp_cursor_final.json
+      - write 도구는 UTF-8 BOM을 추가하여 ntfy 서버가 거부
+      - 해결: write 도구 + .NET API로 BOM 제거 + bash curl 전송
+    명령어_순서:
+      1. write 도구로 JSON 파일 생성 (단일 줄 압축):
+         {"topic":"Workflow","title":"[커서] 작업 완료","message":"작업 요약...\n\n커밋 내역:\n- ...","priority":4,"tags":["checkmark","AI","chatGPT","deep think","complete"]}
+         파일명: temp_cursor_final.json
+      
+      2. BOM 제거 (.NET API):
+         [System.IO.File]::WriteAllText('C:\DATA\Project\Workflow\temp_cursor_final.json', (Get-Content 'C:\DATA\Project\Workflow\temp_cursor_final.json' -Raw), (New-Object System.Text.UTF8Encoding($false)))
+      
+      3. curl 전송:
+         bash -c "curl -H 'Content-Type: application/json; charset=utf-8' --data-binary @temp_cursor_final.json https://ntfy.sh"
+      
+      4. 정리:
+         Remove-Item -Force temp_cursor_final.json
+    
+    중요_참고:
+      - write 도구와 PowerShell Set-Content는 항상 BOM 추가 → .NET API 필수
+      - JSON은 단일 줄 압축 형식으로 작성 (줄바꿈 없음)
+      - 전송 성공 시 응답 JSON에 한글 정상 표시 확인
 
 완료_체크리스트:
   - 빌드_테스트_통과

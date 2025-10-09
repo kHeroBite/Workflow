@@ -1,8 +1,1 @@
-{
-  "topic": "Workflow",
-  "title": "[커서] 작업 완료",
-  "message": "작업 요약: 이미지 저장 기능 완전 수정 완료\n\n수정 내역:\n1. 전체 워크플로우 영역 캡처 수정\n   - 스크롤 위치 자동 리셋 및 복원\n   - scrollWidth/Height로 전체 크기 명시\n   - transform 스타일 무시하여 스케일 영향 제거\n\n2. 우측 여백 10px 추가\n   - padding: '20px 30px 20px 20px'\n   - 더 깔끔한 이미지 레이아웃\n\n개선 효과:\n✅ 7단계 완료 후에도 전체 영역 완벽 캡처\n✅ 다크/라이트 모드 모두 정상 동작\n✅ 전체보기 상태에서도 완전한 이미지\n✅ 적절한 여백으로 시각적 개선\n\n커밋 내역:\n- [커서] 🖼️ 이미지 캡처 시 전체 워크플로우 영역이 저장되도록 수정\n- [커서] 🖼️ 이미지 캡처 우측 여백 10px 추가",
-  "priority": 4,
-  "tags": ["checkmark", "AI", "cursor", "workflow", "complete"]
-}
-
+{"topic":"Workflow","title":"[커서] 작업 완료","message":"작업 요약: 이미지 저장 우측 여백 5px 축소 적용 및 렌더링 테스트 통과\n\n커밋 내역:\n- [커서] 🖼️ 이미지 저장 우측 여백 5px 축소(우측 마진 -5px) by gpt-5","priority":4,"tags":["checkmark","AI","chatGPT","deep think","complete"]}

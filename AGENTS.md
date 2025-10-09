@@ -40,30 +40,36 @@
 
 **⚠️ 한글 인코딩 보장을 위해 반드시 아래 방법을 사용하세요:**
 - PowerShell의 `Invoke-RestMethod`는 한글이 깨져서 전송됩니다.
-- 해결책: **Git Bash의 curl 사용** (`bash -c "curl ..."` 명령)
+- write 도구의 기본 UTF-8 인코딩은 **BOM(Byte Order Mark)**을 추가하여 ntfy 서버가 거부합니다.
+- **해결책: write 도구 + .NET API로 BOM 제거 + Git Bash curl 전송**
 
-**전송 절차:**
-1. **write 도구로 JSON 파일 생성** (UTF-8 인코딩 보장):
+**전송 절차 (검증된 방법):**
+1. **write 도구로 JSON 파일 생성** (단일 줄 압축 JSON):
    ```json
-   {
-     "topic": "Workflow",
-     "title": "[코덱스] 작업 완료",
-     "message": "작업 요약: [실제 수행한 작업들의 구체적인 설명과 개선 효과]\n\n커밋 내역:\n- [커밋 메시지1]\n- [커밋 메시지2]",
-     "priority": 4,
-     "tags": ["checkmark", "AI", "chatGPT", "deep think", "complete"]
-   }
+   {"topic":"Workflow","title":"[코덱스] 작업 완료","message":"작업 요약: [실제 수행한 작업들의 구체적인 설명과 개선 효과]\n\n커밋 내역:\n- [커밋 메시지1]\n- [커밋 메시지2]","priority":4,"tags":["checkmark","AI","chatGPT","deep think","complete"]}
    ```
    파일명: `temp_codex_final.json`
 
-2. **bash + curl로 알림 전송** (PowerShell에서 실행):
+2. **BOM 제거** (.NET API로 UTF-8 without BOM 재작성):
+   ```powershell
+   [System.IO.File]::WriteAllText('C:\DATA\Project\Workflow\temp_codex_final.json', (Get-Content 'C:\DATA\Project\Workflow\temp_codex_final.json' -Raw), (New-Object System.Text.UTF8Encoding($false)))
+   ```
+
+3. **bash + curl로 알림 전송**:
    ```powershell
    bash -c "curl -H 'Content-Type: application/json; charset=utf-8' --data-binary @temp_codex_final.json https://ntfy.sh"
    ```
 
-3. **임시 파일 정리** (PowerShell 명령):
+4. **임시 파일 정리**:
    ```powershell
    Remove-Item -Force temp_codex_final.json
    ```
+
+**중요 참고사항:**
+- write 도구는 항상 UTF-8 BOM을 추가하므로 2단계 BOM 제거가 필수입니다.
+- PowerShell `Set-Content -Encoding UTF8`도 BOM을 추가하므로 .NET API를 사용해야 합니다.
+- JSON은 반드시 단일 줄 압축 형식으로 작성합니다 (줄바꿈 없음).
+- 전송 성공 시 응답 JSON에 한글이 정상 표시됩니다.
 
 ## 🚨🚨🚨 최종 강조사항 🚨🚨🚨
 **모든 대화와 작업이 끝나기 직전에 반드시 ntfy 알림을 보내세요!**
