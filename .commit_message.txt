@@ -1,1 +1,1 @@
-[커서] 📏 단계 너비 376px → 390px로 CSS와 일치 - 우측 여백 확보 완료 by claude-sonnet-4-5
+[커서] 📏 단계 너비 390px → 410px로 추가 증가 - 충분한 우측 여백 확보 by claude-sonnet-4-5
