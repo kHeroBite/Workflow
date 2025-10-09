@@ -1829,7 +1829,7 @@ Vue.createApp({
       if (!canvas) return '원본 0x0 → 스케일 0x0';
       
       // 계산크기 기준으로 강제 설정
-            const calculatedWidth = this.visibleStages.length * 333 + (this.visibleStages.length - 1) * 16; // 박스너비 + 간격
+      const calculatedWidth = this.visibleStages.length * 333 + (this.visibleStages.length - 1) * 16; // 박스너비 + 간격
       const originalHeight = canvas.scrollHeight;
       const scaledWidth = Math.round(calculatedWidth * this.scale);
       const scaledHeight = Math.round(originalHeight * this.scale);
@@ -2903,7 +2903,7 @@ Vue.createApp({
 
       try {
         // 내보내기 크기를 패딩까지 포함하여 계산
-        const exportWidth = fullWidth + 20 + 35;  // 좌 20 + 우 35 (우측 5px 축소)
+        const exportWidth = fullWidth + 20 + 20;  // 좌 20 + 우 20
         const exportHeight = fullHeight + 20 + 20; // 상 20 + 하 20
 
         const dataUrl = await htmlToImage.toPng(stageList, {
@@ -2914,7 +2914,7 @@ Vue.createApp({
           height: exportHeight,
           style: {
             margin: '0',
-            padding: '20px 35px 20px 20px', // 상 우(5px 감소) 하 좌
+            padding: '20px 20px 20px 20px', // 상 우 하 좌
             transform: 'none', // 스케일 변환 무시
           }
         });
