@@ -61,16 +61,16 @@
   7_ntfy_알림:
     필수: 절대_필수_절대_빠뜨리지_말것
     실행_시점: 모든_작업_완료_직전
+    한글_인코딩_보장:
+      - PowerShell Invoke-RestMethod는 한글 깨짐 발생
+      - 해결: bash + curl 사용 (Git Bash 포함됨)
     명령어: |
-      echo '{
-        "topic": "Workflow",
-        "title": "커서 작업 완료",
-        "message": "작업 요약: [구체적인_작업_내용]\n\n커밋 내역:\n- [커밋들]",
-        "priority": 4,
-        "tags": ["checkmark", "AI", "Cursor", "complete"]
-      }' > temp_cursor_final.json
-      $content = Get-Content temp_cursor_final.json -Raw -Encoding UTF8; Invoke-RestMethod -Uri "https://ntfy.sh" -Method Post -Body $content -ContentType "application/json; charset=utf-8"
-      rm temp_cursor_final.json
+      # 1. write 도구로 temp_cursor_final.json 파일 생성 (UTF-8)
+      #    내용: { "topic": "Workflow", "title": "[커서] 작업 완료", "message": "...", "priority": 4, "tags": [...] }
+      # 2. curl로 전송
+      bash -c "curl -H 'Content-Type: application/json; charset=utf-8' --data-binary @temp_cursor_final.json https://ntfy.sh"
+      # 3. 정리
+      Remove-Item -Force temp_cursor_final.json
 
 완료_체크리스트:
   - 빌드_테스트_통과

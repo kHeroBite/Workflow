@@ -37,26 +37,33 @@
 
 ### 작업 완료 알림 (Codex 전용)
 **🚨 절대 필수 🚨: 모든 작업 완료 직전에 ntfy 알림을 반드시 전송해야 합니다!**
-1. JSON 파일 생성:
-```bash
-echo '{
-  "topic": "Workflow",
-  "title": "[코덱스] 작업 완료",
-  "message": "작업 요약: [실제 수행한 작업들의 구체적인 설명과 개선 효과]\n\n커밋 내역:\n- [커밋 메시지1]\n- [커밋 메시지2]",
-  "priority": 4,
-  "tags": ["checkmark", "AI", "chatGPT", "deep think", "complete"]
-}' > temp_codex_final.json
-```
-2. 알림 전송:
-```bash
-curl https://ntfy.sh \
-  -H "Content-Type: application/json; charset=utf-8" \
-  --data-binary @temp_codex_final.json
-```
-3. 임시 파일 정리:
-```bash
-rm temp_codex_final.json
-```
+
+**⚠️ 한글 인코딩 보장을 위해 반드시 아래 방법을 사용하세요:**
+- PowerShell의 `Invoke-RestMethod`는 한글이 깨져서 전송됩니다.
+- 해결책: **Git Bash의 curl 사용** (`bash -c "curl ..."` 명령)
+
+**전송 절차:**
+1. **write 도구로 JSON 파일 생성** (UTF-8 인코딩 보장):
+   ```json
+   {
+     "topic": "Workflow",
+     "title": "[코덱스] 작업 완료",
+     "message": "작업 요약: [실제 수행한 작업들의 구체적인 설명과 개선 효과]\n\n커밋 내역:\n- [커밋 메시지1]\n- [커밋 메시지2]",
+     "priority": 4,
+     "tags": ["checkmark", "AI", "chatGPT", "deep think", "complete"]
+   }
+   ```
+   파일명: `temp_codex_final.json`
+
+2. **bash + curl로 알림 전송** (PowerShell에서 실행):
+   ```powershell
+   bash -c "curl -H 'Content-Type: application/json; charset=utf-8' --data-binary @temp_codex_final.json https://ntfy.sh"
+   ```
+
+3. **임시 파일 정리** (PowerShell 명령):
+   ```powershell
+   Remove-Item -Force temp_codex_final.json
+   ```
 
 ## 🚨🚨🚨 최종 강조사항 🚨🚨🚨
 **모든 대화와 작업이 끝나기 직전에 반드시 ntfy 알림을 보내세요!**
