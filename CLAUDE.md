@@ -29,6 +29,13 @@
       - 새_함수_추가
       - 주요_로직_변경
       - 아키텍처_변경
+      - UI_컴포넌트_중요_변경
+      - 공유_시스템_변경
+      - 테마_시스템_변경
+    자동_업데이트_규칙:
+      - 위_조건_충족시_자동으로_CLAUDE.md_업데이트_실행
+      - 변경_내용을_해당_섹션에_반영
+      - 기존_구조_유지하면서_새_정보_추가
 
   4_context_관리:
     조건: context가_20%_이하로_남은_경우
@@ -180,24 +187,26 @@ This is a **maintenance workflow simulation application** built as a single-page
 핵심_computed_속성:
   - 속성명: expectedMaxSteps
     역할: 현재 경로의 예상 최대 단계 수 동적 계산 (단조 증가)
-    반환값: Number (최소 5 ~ 최대 9)
+    반환값: Number (최소 5 ~ 최대 7)
     동작:
-      - visibleStages가 비어있으면 → 9 (전체 단계)
-      - 마지막 단계가 9(완료)면 → visibleStages.length
+      - visibleStages가 비어있으면 → 7 (전체 단계)
+      - 마지막 단계가 7(완료)면 → visibleStages.length
       - 그 외 → 마지막 선택의 nextSteps 파싱 후 남은 최대 거리 계산
       - Math.max()로 maxExpectedSteps와 비교하여 절대 감소하지 않음 (진행도 안정성)
     호출: progressRatio에서 사용
     개선사항:
       - 진행도 바가 역행하는 버그 해결 (maxExpectedSteps 추적)
+      - 7단계 완료 시 100% 표시 수정
 
   - 속성명: calculateMaxDistanceToCompletion(stageId)
     역할: 주어진 단계에서 완료까지의 최대 거리
     반환값: Number (1~5)
     매핑:
-      - 1단계 → 5 (1→2→4→5.1→9)
-      - 2단계 → 4 (2→4→5.1→9)
-      - 5단계 → 5 (5→6→7→8→9 최장 경로)
-      - 9단계 → 1 (완료)
+      - 1단계 → 5 (1→2→4→5.1→7)
+      - 2단계 → 4 (2→4→5.1→7)
+      - 5단계 → 3 (5→6→7)
+      - 6단계 → 2 (6→7)
+      - 7단계 → 1 (완료)
 
   - 속성명: progressRatio
     역할: 진행률 계산 (0~1)
@@ -374,31 +383,63 @@ This is a **maintenance workflow simulation application** built as a single-page
     호출빈도: 공유_버튼_클릭_시
     위치: workflow.html:2801
 
-  - 함수명: shareViaEmail()
-    역할: 메일 공유 (Web Share API 우선 시도)
+  - 함수명: generateTextDiagram()
+    역할: 워크플로우 상태를 텍스트 다이어그램으로 변환
+    반환값: string (텍스트 형식의 워크플로우 다이어그램)
     동작:
-      - Web Share API 지원 확인
-      - 지원 시: dataUrl → Blob → File 변환 후 navigator.share()
-      - 미지원 시: downloadShareImage() + mailto: 링크
-      - mailto: 본문에 "수동으로 첨부" 안내 포함
-    호출빈도: 공유_센터_메일_버튼_클릭_시
-    위치: workflow.html:2967
-    async: true (비동기 함수)
+      - 상단 여백 2줄 추가 (서명과 구분)
+      - 구분선: ━━ (50개 반복)
+      - 각 단계별 진행 내역 표시
+      - 진행률 및 생성 시각 포함
+    호출빈도: 텍스트 공유 시
     개선사항:
-      - Web Share API로 이미지 자동 첨부 시도
-      - 폴백 메시지 "수동으로 첨부" 명확화
+      - 서명 위 붙여넣기 위한 상단 여백 추가
+      - 구분선 스타일 개선 (━ 사용)
+
+  - 함수명: shareViaEmail()
+    역할: 메일 공유 (이미지 공유 탭용)
+    동작:
+      - 텍스트 다이어그램 생성
+      - 이메일 본문에 다이어그램 + 이미지 첨부 안내
+      - PNG 이미지 자동 다운로드
+    호출빈도: 이미지 공유 탭의 메일 버튼 클릭 시
+    async: true (비동기 함수)
+
+  - 함수명: shareViaEmailText()
+    역할: 메일 공유 (텍스트 공유 탭용)
+    동작:
+      - 텍스트 다이어그램을 클립보드에 복사
+      - 빈 이메일 클라이언트 열기
+      - 사용자가 서명 위에 붙여넣기 안내
+    호출빈도: 텍스트 공유 탭의 메일 버튼 클릭 시
+    async: true (비동기 함수)
 
   - 함수명: handleShareTarget(targetId)
     역할: 공유 대상별 액션 분기
     매개변수:
       - targetId: 'email' | 'kakao' | 'sms' | 'sns'
     동작:
-      - email: shareViaEmail() 호출
+      - email: 활성 탭에 따라 분기
+        - 이미지 탭: shareViaEmail() 호출
+        - 텍스트 탭: shareViaEmailText() 호출
       - kakao: shareViaKakao() 호출 (메시지 복사)
       - sms: shareViaSMS() 호출 (sms: 프로토콜)
       - sns: shareViaSNS() 호출 (Twitter 공유)
     호출빈도: 공유_센터_옵션_클릭_시
     위치: workflow.html:2945
+    개선사항:
+      - 탭별 이메일 공유 방식 분리
+
+  - 함수명: getSystemPreferredTheme()
+    역할: 시스템(브라우저/OS) 선호 테마 감지
+    반환값: 'light' | 'dark'
+    동작:
+      - window.matchMedia('(prefers-color-scheme: dark)') 확인
+      - 다크 모드 감지 시 'dark' 반환
+      - 기본값: 'light' 반환
+    호출빈도: 최초 실행 시 (mounted 훅)
+    개선사항:
+      - Windows/브라우저 시스템 테마 자동 감지
 
   - 함수명: buildShareMessage(filename)
     역할: 공유 메시지 생성
@@ -578,6 +619,14 @@ CSS_커스텀_속성:
   고정_크기:
     단계_너비: 346px (단계당 고정 너비)
     캔버스_너비: visibleStages.length × 346px
+
+시스템_테마_감지:
+  초기_테마_결정:
+    - localStorage에 저장된 테마 우선 적용
+    - 없으면 시스템 선호 테마 감지 (prefers-color-scheme: dark)
+    - getSystemPreferredTheme() 메서드로 자동 감지
+  저장_키: "maintenanceWorkflowTheme"
+  지원_브라우저: Chrome, Edge, Firefox, Safari
 ```
 
 ## 🎯 중요 구현 세부사항
@@ -1102,6 +1151,21 @@ JavaScript_스타일:
       - 디버그 레이어 자동 닫기
       - 진행도 리셋
       - 스크롤 및 줌 리셋
+
+  공유_버튼 (#shareWorkflow):
+    기능:
+      - 워크플로우 공유 (이미지/텍스트)
+      - Windows 공유 센터 우선 시도 (텍스트만)
+      - 실패 시 커스텀 공유 센터 모달 표시
+      - 탭 구분: 이미지 공유 / 텍스트 공유
+    디자인: 아이콘 전용 버튼 (toolbar__button--icon-only)
+    비활성화: started=false 시
+    아이콘: Windows 스타일 공유 아이콘 (사각형 + 우상향 화살표)
+    툴팁: "공유하기"
+    동작: shareWorkflow() 메서드 호출
+    공유_옵션:
+      - 이미지_공유: PNG 다운로드 + 이메일 본문에 텍스트 다이어그램
+      - 텍스트_공유: 클립보드 복사 + 빈 이메일 열기 (서명 위 붙여넣기)
 
   이미지_저장_버튼 (#saveImage):
     기능:
