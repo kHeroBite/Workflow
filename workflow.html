@@ -10,7 +10,7 @@
   --radius-md: 18px;
   --radius-sm: 12px;
   --shadow-soft: 0 30px 68px rgba(8, 12, 24, 0.46);
-  --stage-width-base: 402px;
+  --stage-width-base: 404px;
   --summary-height-base: 132px;
   --choice-height-base: 56px;
   --board-gap-base: 1rem;
@@ -1829,7 +1829,7 @@ Vue.createApp({
       if (!canvas) return '원본 0x0 → 스케일 0x0';
       
       // 계산크기 기준으로 강제 설정
-            const calculatedWidth = this.visibleStages.length * 402;
+            const calculatedWidth = this.visibleStages.length * 404;
       const originalHeight = canvas.scrollHeight;
       const scaledWidth = Math.round(calculatedWidth * this.scale);
       const scaledHeight = Math.round(originalHeight * this.scale);
@@ -2109,7 +2109,7 @@ Vue.createApp({
           // 캔버스 크기 먼저 업데이트 (visibleStages 기준)
           const container = this.$refs.stageListWrapper;
           if (container && this.visibleStages.length > 0) {
-            const stageWidth = 402; // 단계당 고정 너비 (적절한 우측 여백 확보)
+            const stageWidth = 404; // 단계당 고정 너비 (적절한 우측 여백 확보)
         const totalWidth = this.visibleStages.length * stageWidth; // 우측 여백 확보
         container.style.width = `${totalWidth}px`;
         container.style.minWidth = `${totalWidth}px`;
@@ -2229,7 +2229,7 @@ Vue.createApp({
       // 전체보기 모드에서도 고정 너비 유지 (좌표 계산 일관성 확보)
       const stageCount = this.visibleStages.length || 0;
       if (stageCount >= 0) {
-        const stageWidth = 402; // 단계당 고정 너비 (적절한 우측 여백 확보)
+        const stageWidth = 404; // 단계당 고정 너비 (적절한 우측 여백 확보)
         const totalWidth = stageCount * stageWidth; // 우측 여백 확보
 
         container.style.width = `${totalWidth}px`;
@@ -2243,7 +2243,7 @@ Vue.createApp({
       if (!stageCards.length) {
         // 카드 DOM이 아직 준비되지 않은 경우에도 계산크기 기준으로 SVG 사이즈 설정
         // 단, 전체보기 모드일 때는 실제 콘텐츠 크기 사용
-        const calculatedWidth = this.isFit ? container.scrollWidth : stageCount * 402; // 우측 여백 확보
+        const calculatedWidth = this.isFit ? container.scrollWidth : stageCount * 404; // 우측 여백 확보
         this.connectorSize = {
           width: calculatedWidth,
           height: container.scrollHeight
@@ -2391,7 +2391,7 @@ Vue.createApp({
         });
 
         // 계산크기 기준으로 SVG 크기 설정 (항상 고정 너비 사용)
-        const calculatedWidth = stageCount * 402; // 우측 여백 확보
+        const calculatedWidth = stageCount * 404; // 우측 여백 확보
         const containerHeight = container.scrollHeight;
 
         // 캔버스는 계산크기와 정확히 일치하도록 SVG 크기 설정
@@ -2596,7 +2596,7 @@ Vue.createApp({
         // 먼저 스케일을 1로 리셋하되, 컨테이너 크기는 고정 (layout 변경 방지)
         this.scale = 1;
         const stageCount = this.visibleStages.length || 0;
-        const fixedWidth = stageCount * 402; // 단계당 고정 너비 (적절한 우측 여백 확보)
+        const fixedWidth = stageCount * 404; // 단계당 고정 너비 (적절한 우측 여백 확보)
         container.style.width = `${fixedWidth}px`;
         container.style.minWidth = `${fixedWidth}px`;
         container.style.maxWidth = `${fixedWidth}px`;

@@ -1,0 +1,1 @@
+{"topic":"Workflow","title":"[커서] 작업 완료","message":"작업 요약: 단계 너비를 405px에서 402px로 조정하고 CSS에서 clamp() 함수를 제거하여 브라우저 크기에 상관없이 캔버스와 단계 박스 크기가 고정되도록 수정했습니다.\n\n커밋 내역:\n- [커서] 📐 단계 너비 405px → 402px로 조정 및 CSS 고정값 적용 - 브라우저 크기 무관하게 캔버스 크기 고정 by claude-sonnet-4-5","priority":4,"tags":["checkmark","AI","chatGPT","deep think","complete"]}
