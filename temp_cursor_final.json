@@ -1,1 +1,1 @@
-{"topic":"Workflow","title":"[테스트] 한글 인코딩 테스트","message":"안녕하세요! 🎉\n\n이 메시지는 한글 인코딩 테스트입니다.\n\n특수문자: ★☆♥♡\n이모지: 🚀🎨✨💻\n한글: 가나다라마바사아자차카타파하\n\n정상적으로 표시되면 성공입니다! ✅","priority":3,"tags":["white_check_mark","test","한글"]}
+{"topic":"Workflow","title":"[커서] 작업 완료","message":"작업 요약: gi.bat 스크립트의 git history 표시 개수를 50개에서 10개로 제한했습니다. gi.ps1 파일의 Select-Object -First 값을 수정하여 reflog 출력을 간결하게 개선했습니다.\n\n커밋 내역:\n- [커서] 🔧 git history 표시 개수 10개로 제한 by claude-sonnet-4-5","priority":4,"tags":["checkmark","AI","chatGPT","deep think","complete"]}

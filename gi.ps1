@@ -9,7 +9,7 @@ Write-Host '==================================================' -ForegroundColor
 Write-Host ''
 
 # Get reflog entries
-$raw = git reflog --date=iso --format='%h|%gd|%cd|%gs' | Select-Object -First 10
+$raw = git reflog --date=iso --format='%h|%gd|%cd|%gs' | Select-Object -First 50
 
 if(-not $raw) {
   Write-Host '[INFO] No reflog entries found.' -ForegroundColor Yellow
@@ -38,7 +38,7 @@ if($entries.Count -eq 0) {
 # Arrow key selection UI
 $index = 0
 $max = $entries.Count - 1
-$pageSize = [Math]::Min(15, $entries.Count)
+$pageSize = [Math]::Min(10, $entries.Count)
 
 [Console]::CursorVisible = $false
 
