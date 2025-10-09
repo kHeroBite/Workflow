@@ -43,8 +43,12 @@
     원격_저장소: https://github.com/kHeroBite/Workflow.git
     명령어:
       - git add .
-      - git commit -F .commit_message.txt
+      - git commit -m "[커서] {설명} by {modelId}" (직접 사용)
       - git push
+    한글_인코딩_해결책:
+      - .commit_message.txt 파일 사용 금지
+      - git commit -m "메시지" 직접 사용
+      - PowerShell 인코딩 문제 완전 회피
 
   5_로그_삭제:
     명령어: rm -f temp_*.json *.log
