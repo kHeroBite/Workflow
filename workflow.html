@@ -206,9 +206,13 @@ body::before {
   z-index: 0;
   border-radius: var(--radius-lg);
 }
-/* 완료 시 반짝이는 애니메이션 */
+/* 완료 시 반짝이는 애니메이션 - 다크모드 기본 */
 .toolbar.has-progress.is-completed::before {
-  animation: progressGlow 1.5s ease-in-out infinite;
+  animation: progressGlowDark 1.5s ease-in-out infinite;
+}
+/* 라이트모드에서 다른 애니메이션 적용 */
+body[data-theme="light"] .toolbar.has-progress.is-completed::before {
+  animation: progressGlowLight 1.5s ease-in-out infinite;
 }
 .toolbar > * {
   position: relative;
@@ -449,12 +453,20 @@ body::before {
     box-shadow: 0 0 0 6px rgba(250, 204, 21, 0);
   }
 }
-@keyframes progressGlow {
+@keyframes progressGlowDark {
   0%, 100% {
-    opacity: 0.6;
+    opacity: 0.5;  /* 다크모드: 더 어둡게 시작 */
   }
   50% {
-    opacity: 1;
+    opacity: 1;    /* 다크모드: 최대 밝기 */
+  }
+}
+@keyframes progressGlowLight {
+  0%, 100% {
+    opacity: 0.35; /* 라이트모드: 훨씬 더 어둡게 시작 */
+  }
+  50% {
+    opacity: 0.75; /* 라이트모드: 중간 밝기 */
   }
 }
 @keyframes radialPulse {
