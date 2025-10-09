@@ -1866,13 +1866,18 @@ Vue.createApp({
   mounted() {
     try {
       const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-      if (savedTheme) {
+      if (savedTheme === 'light' || savedTheme === 'dark') {
         this.theme = savedTheme;
+        this.commitTheme(savedTheme);
       } else {
-        this.commitTheme(this.theme);
+        const systemTheme = this.getSystemPreferredTheme();
+        this.theme = systemTheme;
+        this.commitTheme(systemTheme);
       }
     } catch (error) {
-      this.commitTheme(this.theme);
+      const fallback = this.getSystemPreferredTheme();
+      this.theme = fallback;
+      this.commitTheme(fallback);
     }
 
     window.addEventListener('mousemove', this.handleDragMove);
@@ -1887,6 +1892,21 @@ Vue.createApp({
     window.removeEventListener('resize', this.handleResize);
   },
   methods: {
+    /**
+     * 시스템(브라우저/OS) 선호 테마 감지
+     * @returns {'light'|'dark'}
+     */
+    getSystemPreferredTheme() {
+      try {
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          return 'dark';
+        }
+      } catch (error) {
+        /* ignore */
+      }
+      return 'light';
+    },
+
     /**
      * 테마 설정 적용 및 저장
      */
