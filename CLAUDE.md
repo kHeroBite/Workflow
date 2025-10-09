@@ -64,11 +64,6 @@
       $content = Get-Content temp_cursor_final.json -Raw -Encoding UTF8; Invoke-RestMethod -Uri "https://ntfy.sh" -Method Post -Body $content -ContentType "application/json; charset=utf-8"
       rm temp_cursor_final.json
 
-context_관리_조건부_실행:
-  조건: context가_20%_이하로_남은_경우
-  명령어: /compact
-  실행_시점: 언제든지_필요시
-
 완료_체크리스트:
   - 빌드_테스트_통과
   - 문서_업데이트_완료 (필요시)
@@ -77,7 +72,6 @@ context_관리_조건부_실행:
   - 로그_삭제_완료
   - 프로그램_실행_완료
   - ntfy_알림_전송됨
-  - context_정리_완료 (필요시)
 ```
 
 ## 📦 프로젝트 메타데이터
