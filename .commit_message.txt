@@ -1,1 +1,1 @@
-[커서] 📏 우측 패딩 수정 - CSS padding 속성 순서 올바르게 조정 by claude-sonnet-4-5
+[커서] 📏 단계 너비 346px → 356px 증가 - 우측 여백 확보 by claude-sonnet-4-5
