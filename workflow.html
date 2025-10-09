@@ -1287,6 +1287,38 @@ body[data-theme="light"] .share-center__option {
   color: var(--text-faded);
   line-height: 1.5;
 }
+.share-center__tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid var(--toolbar-border);
+  margin-bottom: 1rem;
+}
+.share-center__tab {
+  flex: 1;
+  padding: 0.7rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s ease;
+}
+.share-center__tab:hover {
+  color: var(--text-primary);
+  background: var(--toolbar-button-hover-bg);
+}
+.share-center__tab.is-active {
+  color: var(--accent-strong);
+  border-bottom-color: var(--accent-strong);
+}
+.share-center__tab-content {
+  display: none;
+}
+.share-center__tab-content.is-active {
+  display: block;
+}
 @media (max-width: 640px) {
   .share-center {
     padding: 0.8rem;
@@ -1495,21 +1527,59 @@ body[data-theme="light"] .share-center__option {
           </svg>
         </button>
       </div>
-      <p class="share-center__description">
-        공유용 PNG 이미지가 준비되었습니다. 필요에 따라 메시지를 복사하고 원하는 메신저나 SNS에서 이미지를 첨부해 주세요.
-      </p>
-      <div class="share-center__primary-actions">
-        <button type="button" class="share-center__primary-button" @click="downloadShareImage">PNG 이미지 저장</button>
-        <button type="button" class="share-center__primary-button" @click="copyShareMessage">공유 메시지 복사</button>
-      </div>
-      <div class="share-center__options">
-        <button type="button" class="share-center__option" v-for="target in shareTargets" :key="target.id" @click="handleShareTarget(target.id)">
-          <span class="share-center__option-label">{{ target.label }}</span>
-          <span class="share-center__option-helper">{{ target.description }}</span>
+
+      <!-- 탭 버튼 -->
+      <div class="share-center__tabs">
+        <button type="button" class="share-center__tab" :class="{ 'is-active': shareCenter.activeTab === 'image' }" @click="switchShareTab('image')">
+          이미지 공유
+        </button>
+        <button type="button" class="share-center__tab" :class="{ 'is-active': shareCenter.activeTab === 'text' }" @click="switchShareTab('text')">
+          텍스트 공유
         </button>
       </div>
-      <div class="share-center__footer">
-        공유 메시지에는 PNG 파일명을 포함하고 있습니다. 모바일 기기에서는 메신저 호출이 제한될 수 있으니 복사 후 직접 붙여넣어 주세요.
+
+      <!-- 이미지 공유 탭 -->
+      <div class="share-center__tab-content" :class="{ 'is-active': shareCenter.activeTab === 'image' }">
+        <p class="share-center__description">
+          공유용 PNG 이미지가 준비되었습니다. 필요에 따라 메시지를 복사하고 원하는 메신저나 SNS에서 이미지를 첨부해 주세요.
+        </p>
+        <div class="share-center__primary-actions">
+          <button type="button" class="share-center__primary-button" @click="downloadShareImage">PNG 이미지 저장</button>
+          <button type="button" class="share-center__primary-button" @click="copyShareMessage">공유 메시지 복사</button>
+        </div>
+        <div class="share-center__options">
+          <button type="button" class="share-center__option" @click="handleShareTarget('kakao')">
+            <span class="share-center__option-label">카카오톡</span>
+            <span class="share-center__option-helper">메시지를 복사해 카카오톡 대화창에 붙여넣고 이미지 첨부</span>
+          </button>
+          <button type="button" class="share-center__option" @click="handleShareTarget('sms')">
+            <span class="share-center__option-label">문자 메시지</span>
+            <span class="share-center__option-helper">모바일 문자 앱에서 메시지와 이미지 공유</span>
+          </button>
+          <button type="button" class="share-center__option" @click="handleShareTarget('sns')">
+            <span class="share-center__option-label">SNS 공유</span>
+            <span class="share-center__option-helper">Twitter 등 SNS 공유 창 열기 또는 메시지 복사</span>
+          </button>
+        </div>
+        <div class="share-center__footer">
+          공유 메시지에는 PNG 파일명을 포함하고 있습니다. 모바일 기기에서는 메신저 호출이 제한될 수 있으니 복사 후 직접 붙여넣어 주세요.
+        </div>
+      </div>
+
+      <!-- 텍스트 공유 탭 -->
+      <div class="share-center__tab-content" :class="{ 'is-active': shareCenter.activeTab === 'text' }">
+        <p class="share-center__description">
+          워크플로우 진행 내역을 텍스트 다이어그램으로 변환하여 클립보드에 복사합니다.
+        </p>
+        <div class="share-center__options">
+          <button type="button" class="share-center__option" @click="handleShareTarget('email')">
+            <span class="share-center__option-label">메일 보내기</span>
+            <span class="share-center__option-helper">텍스트를 클립보드에 복사하고 이메일 클라이언트를 엽니다</span>
+          </button>
+        </div>
+        <div class="share-center__footer">
+          이메일 본문에서 Ctrl+V를 눌러 원하는 위치(서명 위)에 붙여넣어 주세요.
+        </div>
       </div>
     </div>
   </div>
@@ -1640,6 +1710,7 @@ Vue.createApp({
       debugLogs: [],
       shareCenter: {
         visible: false,
+        activeTab: 'image', // 'image' 또는 'text'
         dataUrl: '',
         filename: '',
         message: '',
@@ -2727,6 +2798,56 @@ Vue.createApp({
       });
     },
     /**
+     * 현재 워크플로우 상태를 텍스트 다이어그램으로 변환
+     * @returns {string} 텍스트 형식의 워크플로우 다이어그램
+     */
+    generateTextDiagram() {
+      if (!this.started || this.visibleStages.length === 0) {
+        return '워크플로우가 시작되지 않았습니다.';
+      }
+
+      const lines = [];
+      lines.push('━'.repeat(50));
+      lines.push('워크플로우 진행 내역');
+      lines.push('━'.repeat(50));
+      lines.push('');
+
+      this.visibleStages.forEach((visibleStage, index) => {
+        const stageId = visibleStage.stage.id;
+        const stageTitle = visibleStage.stage.title;
+        const selectedItemId = this.selections[stageId];
+        const selectedItem = visibleStage.visibleItems.find(item => item.id === selectedItemId);
+        
+        // 단계 헤더
+        lines.push(`[${stageId}단계] ${stageTitle}`);
+        
+        // 선택된 항목 표시
+        if (selectedItem) {
+          lines.push(` ✓ ${selectedItem.label}`);
+        } else {
+          lines.push(` (미선택)`);
+        }
+        
+        // 마지막 단계가 아니면 화살표 추가
+        if (index < this.visibleStages.length - 1) {
+          lines.push('    ↓');
+        }
+        
+        lines.push('');
+      });
+
+      // 진행 정보
+      lines.push('━'.repeat(50));
+      lines.push(`진행률: ${this.selectedCount}/${this.expectedMaxSteps} 단계 완료`);
+      lines.push(`생성 시각: ${new Date().toLocaleString('ko-KR')}`);
+      lines.push('━'.repeat(50));
+
+      this.logAction(`텍스트 다이어그램 생성 완료 (${this.visibleStages.length}개 단계)`);
+
+      return lines.join('\n');
+    },
+
+    /**
      * 워크플로우 화면을 PNG 데이터 URL과 파일명으로 준비
      * @returns {{ dataUrl: string, filename: string }}
      */
@@ -2806,13 +2927,16 @@ Vue.createApp({
       this.logAction('공유 준비 시작');
 
       try {
-        const { dataUrl, filename } = await this.captureWorkflowImage();
-
-        if (await this.tryShareWithNativeAPI(dataUrl, filename)) {
-          return;
+        // Web Share API 우선 시도 (텍스트만)
+        if (await this.tryShareWithNativeAPI()) {
+          return; // 성공하면 종료
         }
 
+        // Web Share API 미지원/실패 시 공유 센터 모달 표시
+        const { dataUrl, filename } = await this.captureWorkflowImage();
+
         this.shareCenter.visible = true;
+        this.shareCenter.activeTab = 'image'; // 기본 탭
         this.shareCenter.dataUrl = dataUrl;
         this.shareCenter.filename = filename;
         this.shareCenter.message = this.buildShareMessage(filename);
@@ -2831,43 +2955,34 @@ Vue.createApp({
     },
 
     /**
-     * Web Share API를 활용하여 네이티브 공유 시도
+     * Web Share API를 활용하여 네이티브 공유 시도 (텍스트 다이어그램만)
      * @returns {boolean} 성공 여부
      */
-    async tryShareWithNativeAPI(dataUrl, filename) {
+    async tryShareWithNativeAPI() {
       if (typeof navigator === 'undefined' || typeof navigator.share !== 'function') {
         return false;
       }
 
-      const shareText = this.buildShareMessage(filename);
-
-      if (typeof File === 'function') {
-        try {
-          const blob = await (await fetch(dataUrl)).blob();
-          const file = new File([blob], filename, { type: 'image/png' });
-          if (typeof navigator.canShare !== 'function' || navigator.canShare({ files: [file] })) {
-            await navigator.share({
-              files: [file],
-              title: 'Workflow 공유 스냅샷',
-              text: shareText
-            });
-            this.logAction(`공유 완료(Web Share API + 파일): ${filename}`);
-            return true;
-          }
-        } catch (error) {
-          console.warn('파일 첨부 공유 실패, 텍스트 공유로 폴백합니다.', error);
-        }
-      }
+      // 텍스트 다이어그램 생성
+      const textDiagram = this.generateTextDiagram();
 
       try {
         await navigator.share({
-          title: 'Workflow 공유 스냅샷',
-          text: shareText
+          title: 'Workflow 진행 내역',
+          text: textDiagram
         });
-        this.logAction('공유 완료(Web Share API 텍스트 전송)');
+        this.logAction('공유 완료(Web Share API - 텍스트 다이어그램)');
         return true;
       } catch (error) {
-        console.warn('Web Share API 텍스트 공유도 실패하여 사용자 정의 공유 센터를 사용합니다.', error);
+        if (error.name === 'AbortError') {
+          // 사용자가 취소한 경우 - 공유 센터를 열지 않음
+          this.logAction('공유 취소됨(사용자가 취소)');
+          return true;
+        } else {
+          // 실제 오류 발생 시 - 공유 센터를 폴백으로 표시
+          console.warn('Web Share API 텍스트 공유 실패, 공유 센터를 사용합니다.', error);
+          this.logAction(`Web Share API 실패: ${error.message}`);
+        }
       }
 
       return false;
@@ -2945,7 +3060,12 @@ Vue.createApp({
     handleShareTarget(targetId) {
       switch (targetId) {
         case 'email':
-          this.shareViaEmail();
+          // 현재 활성 탭에 따라 분기
+          if (this.shareCenter.activeTab === 'text') {
+            this.shareViaEmailText(); // 텍스트만 (이미지 다운로드 없음)
+          } else {
+            this.shareViaEmail(); // 이미지 포함 (이미지 다운로드)
+          }
           break;
         case 'kakao':
           this.shareViaKakao();
@@ -2962,7 +3082,7 @@ Vue.createApp({
     },
 
     /**
-     * 메일 공유 (Web Share API 우선 시도)
+     * 메일 공유 - 이미지 포함 (이미지 공유 탭용)
      */
     async shareViaEmail() {
       if (!this.shareCenter.message || !this.shareCenter.dataUrl || !this.shareCenter.filename) {
@@ -2970,42 +3090,54 @@ Vue.createApp({
         return;
       }
 
-      // Web Share API로 이미지 첨부 시도
-      if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
-        try {
-          const blob = await (await fetch(this.shareCenter.dataUrl)).blob();
-          const file = new File([blob], this.shareCenter.filename, { type: 'image/png' });
+      // 텍스트 다이어그램 생성
+      const textDiagram = this.generateTextDiagram();
+      
+      // 이메일 제목과 본문 구성
+      const subject = encodeURIComponent('Workflow 진행 내역 공유');
+      const bodyLines = [
+        textDiagram,
+        '',
+        '',
+        '※ 상세 이미지는 별도 첨부된 PNG 파일을 확인해 주세요.',
+        `   파일명: ${this.shareCenter.filename}`
+      ];
+      const body = encodeURIComponent(bodyLines.join('\n'));
 
-          if (typeof navigator.canShare !== 'function' || navigator.canShare({ files: [file] })) {
-            await navigator.share({
-              files: [file],
-              title: 'Workflow 이미지 공유',
-              text: this.shareCenter.message
-            });
-            this.logAction('메일 공유 완료 (Web Share API, 이미지 첨부됨)');
-            return;
-          }
-        } catch (error) {
-          console.warn('Web Share API 파일 공유 실패, 기존 방식으로 폴백:', error);
-          this.logAction(`Web Share API 실패: ${error.message}, mailto 폴백`);
-        }
-      }
-
-      // 폴백: 기존 mailto 방식 (이미지 수동 첨부)
+      // 이미지 자동 다운로드
       if (!this.shareCenter.downloadPrepared) {
         this.downloadShareImage();
       }
 
-      const subject = encodeURIComponent('Workflow 이미지 공유');
-      const bodyLines = [
-        this.shareCenter.message,
-        '',
-        '※ PNG 파일이 다운로드 폴더에 저장되었습니다. 메일에 수동으로 첨부해 주세요.'
-      ];
-      const body = encodeURIComponent(bodyLines.join('\n'));
-
+      // 이메일 클라이언트 열기
       window.location.href = `mailto:?subject=${subject}&body=${body}`;
-      this.logAction('메일 공유 링크 실행 (mailto, 수동 첨부 필요)');
+      this.logAction('텍스트 다이어그램 + 이미지 이메일 본문 생성 완료');
+    },
+
+    /**
+     * 메일 공유 - 텍스트만 (텍스트 공유 탭용)
+     */
+    async shareViaEmailText() {
+      // 텍스트 다이어그램 생성
+      const textDiagram = this.generateTextDiagram();
+      
+      try {
+        // 클립보드에 텍스트 다이어그램 복사
+        await navigator.clipboard.writeText(textDiagram);
+        
+        // 이메일 클라이언트 열기 (제목만 설정, 본문은 빈 상태)
+        const subject = encodeURIComponent('Workflow 진행 내역');
+        window.location.href = `mailto:?subject=${subject}`;
+        
+        this.logAction('텍스트 다이어그램 클립보드 복사 완료');
+        
+        // 안내 메시지
+        alert('워크플로우 진행 내역이 클립보드에 복사되었습니다.\n\n이메일 본문에서 Ctrl+V를 눌러 원하는 위치(서명 위)에 붙여넣어 주세요.');
+      } catch (error) {
+        console.error('클립보드 복사 실패:', error);
+        this.logAction(`클립보드 복사 실패: ${error.message}`);
+        alert('클립보드 복사에 실패했습니다. 브라우저 권한을 확인해주세요.');
+      }
     },
 
     /**
@@ -3168,6 +3300,13 @@ Vue.createApp({
     clearDebugLogs() {
       this.debugLogs = [];
       this.logAction('로그 초기화됨');
+    },
+    /**
+     * 공유 센터 탭 전환
+     */
+    switchShareTab(tabName) {
+      this.shareCenter.activeTab = tabName;
+      this.logAction(`공유 센터 탭 전환: ${tabName}`);
     }
   }
 }).mount('.page');
