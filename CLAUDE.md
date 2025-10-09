@@ -36,8 +36,8 @@
       - Edit .commit_message.txt (기존 내용 덮어쓰기)
     한글_인코딩_주의사항:
       - gpt-5 모델 사용 시 PowerShell 인코딩 문제 발생
-      - 해결책: cmd /c "echo 메시지 > .commit_message.txt" 사용
-      - 또는 git commit -m "메시지" 직접 사용
+      - 해결책: claude 모델만 사용 (한글 인코딩 문제 없음)
+      - 모델_ID: claude 최신 버전 자동 사용
 
   4_git_작업:
     원격_저장소: https://github.com/kHeroBite/Workflow.git
@@ -46,9 +46,9 @@
       - git commit -m "[커서] {설명} by {modelId}" (직접 사용)
       - git push
     한글_인코딩_해결책:
-      - .commit_message.txt 파일 사용 금지
-      - git commit -m "메시지" 직접 사용
-      - PowerShell 인코딩 문제 완전 회피
+      - claude 모델만 사용 (한글 인코딩 문제 없음)
+      - .commit_message.txt 파일 정상 사용 가능
+      - git commit -F .commit_message.txt 사용
 
   5_로그_삭제:
     명령어: rm -f temp_*.json *.log
