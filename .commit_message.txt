@@ -1,1 +1,1 @@
-[커서] 🔧 단계 박스 CSS 고정값 적용 및 너비 410px로 조정 - clamp() 함수 완전 제거로 우측 여백 확보 by claude-sonnet-4-5
+[커서] 📏 단계 너비 410px → 420px로 추가 조정 - 우측 여백 확보 by claude-sonnet-4-5
