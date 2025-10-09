@@ -1,1 +1,1 @@
-[커서] ✅ ntfy 한글 인코딩 문제 해결 - bash curl 방식으로 변경 by claude-sonnet-4-20250514
+[커서] 🎨 이미지 저장 시 테마별 배경색 적용 및 중복 함수 제거 by claude-sonnet-4-20250514
