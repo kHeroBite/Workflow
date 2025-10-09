@@ -206,6 +206,10 @@ body::before {
   z-index: 0;
   border-radius: var(--radius-lg);
 }
+/* 완료 시 반짝이는 애니메이션 */
+.toolbar.has-progress.is-completed::before {
+  animation: progressGlow 1.5s ease-in-out infinite;
+}
 .toolbar > * {
   position: relative;
   z-index: 1;
@@ -443,6 +447,14 @@ body::before {
   }
   50% {
     box-shadow: 0 0 0 6px rgba(250, 204, 21, 0);
+  }
+}
+@keyframes progressGlow {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
   }
 }
 @keyframes radialPulse {
@@ -1341,7 +1353,7 @@ body[data-theme="light"] .share-center__option {
 </head>
 <body data-theme="dark">
 <div class="page">
-  <section class="toolbar" aria-label="워크플로우 도구" :class="{ 'has-progress': started }" :style="started ? { '--progress-ratio': progressRatio } : {}">
+  <section class="toolbar" aria-label="워크플로우 도구" :class="{ 'has-progress': started, 'is-completed': isCompleted }" :style="started ? { '--progress-ratio': progressRatio } : {}">
     <div class="toolbar__left">
       <span class="toolbar__title">MAINTENANCE WORKFLOW</span>
       <div class="toolbar__theme">
@@ -1804,6 +1816,13 @@ Vue.createApp({
      */
     progressRatio() {
       return this.expectedMaxSteps ? this.selectedCount / this.expectedMaxSteps : 0;
+    },
+    /**
+     * 워크플로우 완료 여부 (8단계 선택 시 true)
+     */
+    isCompleted() {
+      // 8단계가 선택되었는지 확인
+      return this.selections[8] !== undefined;
     },
     /**
      * 줌 퍼센트 표시
