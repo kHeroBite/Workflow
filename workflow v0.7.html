@@ -1729,7 +1729,7 @@ Vue.createApp({
         { id: 'sns', label: 'SNS 공유', description: 'Twitter 등 SNS 공유 창 열기 또는 메시지 복사' }
       ],
       // 진행도 계산을 위한 최대 예상 단계 수 (절대 줄어들지 않음)
-      maxExpectedSteps: 8,
+      maxExpectedSteps: 9,
       dragState: {
         active: false,
         startX: 0,
@@ -1758,8 +1758,8 @@ Vue.createApp({
       // 마지막 표시된 단계 확인
       const lastStage = this.visibleStages[this.visibleStages.length - 1];
 
-      // 8단계(완료)에 도달했으면 현재까지의 단계 수가 최대
-      if (lastStage.stage.id === 8) {
+      // 7단계(완료)에 도달했으면 현재까지의 단계 수가 최대
+      if (lastStage.stage.id === 7) {
         const finalSteps = this.visibleStages.length;
         // 최종 단계에 도달하면 maxExpectedSteps를 업데이트하지 않음 (이미 완료)
         return finalSteps;
@@ -1782,14 +1782,14 @@ Vue.createApp({
           let maxRemainingSteps = 0;
 
           nextSteps.forEach(({ stageId }) => {
-            // 각 다음 단계부터 8단계(완료)까지의 최대 거리 계산
-            const distanceTo8 = this.calculateMaxDistanceToCompletion(stageId);
-            maxRemainingSteps = Math.max(maxRemainingSteps, distanceTo8);
+            // 각 다음 단계부터 9단계까지의 최대 거리 계산
+            const distanceTo9 = this.calculateMaxDistanceToCompletion(stageId);
+            maxRemainingSteps = Math.max(maxRemainingSteps, distanceTo9);
           });
 
           calculatedMax = this.selectedCount + maxRemainingSteps;
         } else {
-          // 기본값: 현재까지 선택 + 최대 예상 남은 단계 (8 - 현재 최대 단계 ID)
+          // 기본값: 현재까지 선택 + 최대 예상 남은 단계 (9 - 현재 최대 단계 ID)
           calculatedMax = this.selectedCount + (this.workflowSteps.length - lastSelectedStageId);
         }
       }
@@ -1961,26 +1961,25 @@ Vue.createApp({
     },
 
     /**
-     * 주어진 단계 ID에서 완료(8단계)까지의 최대 거리 계산
+     * 주어진 단계 ID에서 완료(7단계)까지의 최대 거리 계산
      * @param {number} stageId - 단계 ID
      * @returns {number} 완료까지의 최대 거리
      */
     calculateMaxDistanceToCompletion(stageId) {
-      // 이미 8단계(완료)면 1 (자기 자신만)
-      if (stageId === 8) {
+      // 이미 7단계(완료)면 1 (자기 자신만)
+      if (stageId === 7) {
         return 1;
       }
 
       // 단계별 최대 거리 매핑 (미리 계산된 값)
       const maxDistanceMap = {
-        1: 5, // 1→2→4→6→8 (최소 5단계)
-        2: 4, // 2→4→6→8 (최소 4단계)
-        3: 4, // 3→4→6→8 (최소 4단계)
-        4: 3, // 4→6→8 (최소 3단계)
-        5: 3, // 5→6→8 (최대 3단계)
-        6: 2, // 6→8 (최대 2단계)
-        7: 2, // 7→8 (최대 2단계)
-        8: 1  // 8 (완료)
+        1: 5, // 1→2→4→5.1→7 (최소 5단계)
+        2: 4, // 2→4→5.1→7 (최소 4단계)
+        3: 4, // 3→4→5.1→7 (최소 4단계)
+        4: 3, // 4→5.1→7 (최소 3단계)
+        5: 3, // 5→6→7 (최대 3단계)
+        6: 2, // 6→7 (최대 2단계)
+        7: 1  // 7 (완료)
       };
 
       return maxDistanceMap[stageId] || 1;
@@ -2009,7 +2008,7 @@ Vue.createApp({
       this.selections = {};
       this.lines = [];
       this.connectorSize = { width: 0, height: 0 };
-      this.maxExpectedSteps = 8; // 진행도 초기화
+      this.maxExpectedSteps = 9; // 진행도 초기화
 
       // 첫 번째 단계만 표시 (전체 항목 표시)
       const firstStage = this.workflowSteps[0];
@@ -2036,7 +2035,7 @@ Vue.createApp({
       this.lines = [];
       this.connectorSize = { width: 0, height: 0 };
       this.scale = 1;
-      this.maxExpectedSteps = 8; // 진행도 초기화
+      this.maxExpectedSteps = 9; // 진행도 초기화
       this.debugLayerVisible = false; // 디버그 로그 자동으로 닫기
 
       // DOM 업데이트 후 스크롤 위치 초기화
