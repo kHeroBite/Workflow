@@ -1,1 +1,1 @@
-[커서] 📏 단계 너비 346px → 356px 증가 - 우측 여백 확보 by claude-sonnet-4-5
+[커서] 📏 단계 너비 356px → 376px 추가 증가 - 우측 여백 확보 강화 by claude-sonnet-4-5
